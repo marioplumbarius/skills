@@ -94,6 +94,29 @@ End with a summary block:
 **Key concern:** <the single most important thing to address, if any>
 ```
 
+## Step 6 — Publish to GitHub
+
+After presenting the full review, ask the user: **"Publish this review to the PR?"**
+
+Only proceed if they say yes. Then post it:
+
+```bash
+# Determine the event type from your recommendation:
+#   APPROVE            → --event APPROVE
+#   REQUEST CHANGES    → --event REQUEST_CHANGES
+#   NEEDS DISCUSSION   → --event COMMENT
+
+gh pr review <number> \
+  --event <EVENT> \
+  --body "<full review body>"
+```
+
+Confirm with the PR URL after posting:
+
+```bash
+gh pr view <number> --json url --jq '.url'
+```
+
 ## Gotchas
 
 - Don't flag style issues that a linter/formatter already enforces — mention the tool instead.
