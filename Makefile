@@ -1,7 +1,7 @@
 .PHONY: create-pull-request generate validate-file validate-lines validate-tokens validate-description validate test help
 
 SKILLS_DIR := .agents/skills
-SKILL_TEMPLATE := SKILLS.template.md
+SKILL_TEMPLATE := SKILL.template.md
 
 create-pull-request: ## Create a pull request for the skill. Usage: make create-pr name=<name>
 	@test -n "$(name)" || (echo "ERROR: name is required." && exit 1)
@@ -18,7 +18,7 @@ generate: ## Generate a new skill from the template. Usage: make generate name=<
 
 	cat $(SKILL_TEMPLATE) \
 	| sed "s/<name>/$(name)/g" \
-	> $(SKILLS_DIR)/$(name)/SKILLS.md
+	> $(SKILLS_DIR)/$(name)/SKILL.md
 
 	@echo "Skill $(name) generated successfully."
 

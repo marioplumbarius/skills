@@ -14,7 +14,7 @@ class MakefileTestCase(unittest.TestCase):
     def setUp(self):
         self.work_dir = Path(tempfile.mkdtemp())
         shutil.copy(REPO_ROOT / "Makefile", self.work_dir)
-        shutil.copy(REPO_ROOT / "SKILLS.template.md", self.work_dir)
+        shutil.copy(REPO_ROOT / "SKILL.template.md", self.work_dir)
 
     def tearDown(self):
         shutil.rmtree(self.work_dir)
@@ -62,7 +62,7 @@ class TestCreatePullRequest(MakefileTestCase):
 class TestGenerate(MakefileTestCase):
     def test_generates_skill_file(self):
         result = self.run_make("generate", "name=hello")
-        skill_file = self.work_dir / ".agents/skills/hello/SKILLS.md"
+        skill_file = self.work_dir / ".agents/skills/hello/SKILL.md"
         self.assertEqual(result.returncode, 0)
         self.assertTrue(skill_file.exists())
         self.assertIn("hello", skill_file.read_text())
