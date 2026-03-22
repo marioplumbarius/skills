@@ -78,4 +78,4 @@ After the PR is open, post a review comment on it that covers:
 
 ## Phase 6 — Retrospective
 
-After the PR is merged (or when asked), update `AGENTS.md` and `docs/HLD_TEMPLATE.md` with any workflow improvements discovered during this cycle. Commit to the default branch directly (or open a separate micro-PR if the repo requires it).
+After the PR is merged (or when asked), update this `SKILL.md` and `docs/HLD_TEMPLATE.md` with any workflow improvements discovered during this cycle. Commit to the default branch directly (or open a separate micro-PR if the repo requires it).
