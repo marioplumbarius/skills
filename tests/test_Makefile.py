@@ -42,23 +42,6 @@ class MakefileTestCase(unittest.TestCase):
         return {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
 
 
-class TestCreatePullRequest(MakefileTestCase):
-    def test_fails_when_name_is_missing(self):
-        result = self.run_make("create-pull-request")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("ERROR", self.output(result))
-
-    def test_creates_branch_and_pr(self):
-        env = self.make_stubs("git", "gh")
-        result = self.run_make("create-pull-request", "name=my-skill", env=env)
-        self.assertEqual(result.returncode, 0)
-        out = self.output(result)
-        self.assertIn("checkout -b mario/my-skill", out)
-        self.assertIn("push -u origin mario/my-skill", out)
-        self.assertIn("pr create", out)
-        self.assertIn("my-skill", out)
-
-
 class TestGenerate(MakefileTestCase):
     def test_generates_skill_file(self):
         result = self.run_make("generate", "name=hello")

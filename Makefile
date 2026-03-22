@@ -1,15 +1,7 @@
-.PHONY: create-pull-request generate validate-file validate-lines validate-tokens validate-description validate test help
+.PHONY: generate validate-file validate-lines validate-tokens validate-description validate test help
 
 SKILLS_DIR := .agents/skills
 SKILL_TEMPLATE := SKILL.template.md
-
-create-pull-request: ## Create a pull request for the skill. Usage: make create-pr name=<name>
-	@test -n "$(name)" || (echo "ERROR: name is required." && exit 1)
-	
-	git checkout -b mario/$(name)
-	git push -u origin mario/$(name)
-	gh pr create --title "Add skill $(name)" --body "This PR adds the skill $(name) to the library."
-	git checkout main
 
 generate: ## Generate a new skill from the template. Usage: make generate name=<name>
 	@test -n "$(name)" || (echo "ERROR: name is required." && exit 1)

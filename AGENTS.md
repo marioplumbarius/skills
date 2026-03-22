@@ -36,7 +36,6 @@ A few principles:
 - Keep it concise. A few sentences to a short paragraph is usually right — long enough to cover the skill’s scope, short enough that it doesn’t bloat the agent’s context across many skills. The specification enforces a hard limit of 1024 characters.
 
 ## Available Commands
-- `make create-pull-request`: Create a pull request for the skill. Usage: make create-pr name=<name>.
 - `make generate`: Generate a new skill from the template. Usage: make generate name=<name>
 - `make validate`: Run all validations against a skill file. Usage: make validate file=<path>
 - `make test`: Run the test suites for the Makefile.
