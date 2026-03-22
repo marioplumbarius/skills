@@ -8,6 +8,7 @@ description: >-
   Values (signal detection + per-principle scoring) and the SMART framework
   across the full resume. Outputs a final phone screen / reject recommendation.
   Requires both a resume and a job description to proceed.
+disable-model-invocation: true
 ---
 
 # Resume Review — Senior/Staff/Principal SWE

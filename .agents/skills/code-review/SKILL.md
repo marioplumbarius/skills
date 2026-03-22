@@ -5,6 +5,7 @@ description: >-
   testability, and readability. Use when given a PR link, branch name, or asked to
   review code changes — even if the user doesn't say "code review" explicitly. Produces
   structured, severity-tiered feedback (🔴 / 🟡 / 🟢) and a final merge recommendation.
+disable-model-invocation: true
 ---
 
 # Code Review
