@@ -197,6 +197,10 @@ Output a final summary block:
 
 ## Gotchas
 
+- **No editorializing beyond the output template.** Do not add qualitative color
+  commentary, superlatives, or comparative claims (e.g., "among the strongest
+  you'll see") outside the structured verdict block. Stick to evidence.
+
 - **Don't penalize format over substance.** A plain-text resume with strong LP
   signal beats a beautifully formatted one with vague bullets.
 - **Titles lie, bullets don't.** A "Senior Engineer" title at a small startup
