@@ -64,7 +64,7 @@ After all commits:
 2. Resolve GitHub user: `gh api user --jq '.login'`
 3. Check for existing PR: `gh pr view --json number 2>/dev/null`
    - No PR → create and assign: `gh pr create --title "..." --body "..." --assignee <login>`
-   - PR exists → update: `gh pr edit --body "..." && gh pr edit --add-assignee <login>`
+   - PR exists → update body via API (avoids `gh pr edit` silent failures on some repos): `gh api repos/<owner>/<repo>/pulls/<number> --method PATCH --field body="..."` then `gh pr edit --add-assignee <login>`
 
 **Keeping the PR description up to date:** Any time a new commit is pushed to a branch that already has an open PR, update the PR description to reflect the new changes. Do not wait until all work is done — update it after each push.
 
