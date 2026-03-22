@@ -40,7 +40,7 @@ Extract and summarize:
 - **Must-haves**: hard requirements stated in JD (years of experience, specific
   tech, domain knowledge)
 - **LP emphasis**: note any LPs the JD language leans into (e.g., "move fast" →
-  Bias for Action; "raise the bar" → Hire and Develop the Best)
+  Bias for Action; "high bar" → Insist on the Highest Standards)
 - **Candidate snapshot**: current role, years of experience, tech stack,
   domains covered
 
@@ -85,24 +85,17 @@ Mark each principle as:
 - **Weak** — implied or vague reference
 - **Absent** — no evidence found
 
-### Amazon Leadership Principles (16)
+### Amazon Leadership Principles (9)
 
 1. Customer Obsession
 2. Ownership
-3. Invent and Simplify
-4. Are Right, A Lot
-5. Learn and Be Curious
-6. Hire and Develop the Best
-7. Insist on the Highest Standards
-8. Think Big
-9. Bias for Action
-10. Frugality
-11. Earn Trust
-12. Dive Deep
-13. Have Backbone; Disagree and Commit
-14. Deliver Results
-15. Strive to be Earth's Best Employer
-16. Success and Scale Bring Broad Responsibility
+3. Learn and Be Curious
+4. Insist on the Highest Standards
+5. Bias for Action
+6. Earn Trust
+7. Dive Deep
+8. Have Backbone; Disagree and Commit
+9. Deliver Results
 
 ### Canva Values (3)
 
