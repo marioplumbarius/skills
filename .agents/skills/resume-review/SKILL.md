@@ -87,15 +87,15 @@ Mark each principle as:
 
 ### Amazon Leadership Principles (9)
 
-1. Customer Obsession
-2. Ownership
-3. Learn and Be Curious
-4. Insist on the Highest Standards
-5. Bias for Action
-6. Earn Trust
-7. Dive Deep
-8. Have Backbone; Disagree and Commit
-9. Deliver Results
+1. Customer Obsession — starts with the customer, works backwards, earns trust
+2. Ownership — acts on behalf of the whole company, never "not my job"
+3. Learn and Be Curious — continuously self-improves, explores new ideas
+4. Insist on the Highest Standards — relentlessly raises the bar on quality
+5. Bias for Action — moves fast, takes calculated risks, doesn't over-deliberate
+6. Earn Trust — listens well, speaks candidly, self-critiques openly
+7. Dive Deep — stays connected to details, validates with data
+8. Have Backbone; Disagree and Commit — challenges respectfully, commits fully
+9. Deliver Results — focuses on the right inputs, ships with quality and speed
 
 ### Canva Values (3)
 
