@@ -4,10 +4,10 @@ description: >-
   Use this skill to review resumes for senior, staff, or principal software
   engineering roles. Apply it when given a resume and a job description, even
   if the user doesn't explicitly say "resume review." Produces structured,
-  section-by-section feedback using Amazon Leadership Principles (signal
-  detection + per-LP scoring) and the SMART framework across the full resume.
-  Outputs a final phone screen / reject recommendation. Requires both a resume
-  and a job description to proceed.
+  section-by-section feedback using Amazon Leadership Principles and Canva
+  Values (signal detection + per-principle scoring) and the SMART framework
+  across the full resume. Outputs a final phone screen / reject recommendation.
+  Requires both a resume and a job description to proceed.
 ---
 
 # Resume Review — Senior/Staff/Principal SWE
@@ -73,16 +73,19 @@ Fixed: "Reduced API p99 latency from 850ms to 120ms by introducing a
 
 ---
 
-## Phase 3 — LP signal detection
+## Phase 3 — Principles signal detection
 
-Scan the resume for evidence of each of Amazon's 16 Leadership Principles.
-Mark each as:
+Scan the resume for evidence of each principle across both frameworks. Run
+them in parallel — a single resume bullet may provide signal for principles
+from both frameworks simultaneously.
+
+Mark each principle as:
 
 - **Strong** — explicit, quantified evidence
 - **Weak** — implied or vague reference
 - **Absent** — no evidence found
 
-The 16 LPs:
+### Amazon Leadership Principles (16)
 
 1. Customer Obsession
 2. Ownership
@@ -101,14 +104,21 @@ The 16 LPs:
 15. Strive to be Earth's Best Employer
 16. Success and Scale Bring Broad Responsibility
 
-Cross-reference with the LP emphasis noted in Phase 1. LPs the JD prioritizes
-carry more weight.
+### Canva Values (3)
+
+1. Pursue Excellence — relentlessly high craft and quality bar; pride in output
+2. Make Complex Things Simple — ability to distil hard problems into elegant,
+   understandable solutions
+3. Empower Others — lifting teammates, enabling their success, building leverage
+
+Cross-reference with the principles emphasis noted in Phase 1. Principles the
+JD prioritizes carry more weight in scoring.
 
 ---
 
-## Phase 4 — LP scoring
+## Phase 4 — Principles scoring
 
-Score each LP from 0–3:
+Score each principle from 0–3:
 
 | Score | Meaning |
 |---|---|
@@ -117,8 +127,15 @@ Score each LP from 0–3:
 | 2 | Moderate — clear example, limited scope or impact |
 | 3 | Strong — explicit, quantified, significant scope |
 
-Compute an **overall LP signal score**: sum / (3 × number of JD-prioritized LPs).
-Express as a percentage. Flag any JD-prioritized LP scoring 0 or 1.
+Compute two separate signal scores:
+
+- **Amazon LP signal**: sum / (3 × number of JD-prioritized Amazon LPs), as %
+- **Canva Values signal**: sum / (3 × number of JD-prioritized Canva values), as %
+
+Compute a **combined signal score**: weighted average of the two (weight each
+proportionally to how many JD-prioritized principles each framework contributes).
+
+Flag any JD-prioritized principle scoring 0 or 1 in either framework.
 
 ---
 
@@ -157,7 +174,9 @@ Output a final summary block:
 
 **Recommendation**: [Advance to phone screen | Reject]
 
-**Overall LP signal**: X% (Y / Z JD-prioritized LPs with strong signal)
+**Amazon LP signal**: X% (Y / Z JD-prioritized LPs with strong signal)
+**Canva Values signal**: X% (Y / Z JD-prioritized values with strong signal)
+**Combined signal**: X%
 
 **Key strengths**:
 - ...
@@ -175,11 +194,11 @@ Output a final summary block:
 
 ### Decision rules
 
-- **Advance** if: no hard blockers AND overall LP signal ≥ 50% AND at least one
-  JD-prioritized LP scores 3
-- **Reject** if: any hard blocker OR overall LP signal < 30%
-- **Judgment call** (state explicitly) if: 30–49% LP signal, no hard blockers —
-  weigh domain fit and seniority trajectory before deciding
+- **Advance** if: no hard blockers AND combined signal ≥ 50% AND at least one
+  JD-prioritized principle scores 3 in each framework
+- **Reject** if: any hard blocker OR combined signal < 30%
+- **Judgment call** (state explicitly) if: 30–49% combined signal, no hard
+  blockers — weigh domain fit and seniority trajectory before deciding
 
 ---
 
@@ -191,8 +210,8 @@ Output a final summary block:
   may outperform a "Staff Engineer" title at a large company — judge by evidence.
 - **Recency matters.** Weight the last 3 years of experience more heavily than
   older roles.
-- **Absence ≠ failure.** Not every LP needs to be present. Focus on LPs the JD
-  emphasizes.
+- **Absence ≠ failure.** Not every principle needs to be present. Focus on what
+  the JD emphasizes across both frameworks.
 - **SMART rewrites are suggestions, not requirements.** They help the candidate
   if feedback is shared; they also help the reviewer assess true impact vs.
   poor articulation.
