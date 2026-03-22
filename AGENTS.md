@@ -28,6 +28,9 @@ Start by generating a new skill file. Create a new branch (<skill-name>), commit
 - Favor procedures over declarations: A skill should teach the agent how to approach a class of problems, not what to produce for a specific instance.
 - Patterns for effective instructions: Gotchas sections, Templates for output format, Checklists for multi-step workflows, Validation loops, Plan-validate-execute
 
+### Gotchas
+- YAML frontmatter: if the `description` value contains a colon, wrap it in quotes — e.g. `description: "Foo: bar"` — otherwise the parser throws a mapping error.
+
 ### Optimizing skill descriptions
 A few principles:
 - Use imperative phrasing. Frame the description as an instruction to the agent: “Use this skill when…” rather than “This skill does…” The agent is deciding whether to act, so tell it when to act.
