@@ -6,7 +6,7 @@ This document explains the *why* behind the principles documented in [AGENTS.md]
 
 ### 1. Ground in expertise, not hypotheticals
 
-**Why:** Skills are instructions for agents to follow. An instruction is only as good as the mental model behind it. If you're writing a code-review skill, you need to have *opinions* about code quality—formed by actually reviewing code, not by reading best-practice articles.
+**Why:** Skills are instructions for agents to follow. An instruction is only as good as the mental model behind it. If you're writing a code-review skill, you need to have *opinions* about code quality—formed by actually reviewing code, not by reading best-practice articles. This aligns with the [learning by doing](https://en.wikipedia.org/wiki/Experiential_learning) principle from cognitive psychology.
 
 **Source:** Years of doing actual code reviews, hiring interviews, and skill creation. When instructions are vague, it's because the author hasn't solved the problem repeatedly enough to develop a clear pattern.
 
@@ -63,7 +63,7 @@ Creating a skill involves:
 3. **Personal philosophy** (Mario's approach, tested through 4 live skills)
 
 These three sources sometimes conflict. Example:
-- AgentSkills spec says "description can be up to 1024 characters"
+- [AgentSkills spec](https://agentskills.io/specification) says "description can be up to 1024 characters"
 - Mario's rule: "craft it tight, under 200 characters, because if you can't describe the skill briefly, it's not coherent"
 
 Resolving this: Mario's rule wins. It's more restrictive, but produces better skills.
@@ -104,30 +104,30 @@ Each of the 4 skills demonstrates these principles:
 - **Principle: Moderate detail**
   - 6 phases, clear decision rules, no ambiguity. Not 20 phases, not 2.
 - **Principle: Ground in expertise**
-  - Scoring frameworks use Amazon Leadership Principles + Canva Values (frameworks Mario has used for hiring).
+  - Scoring frameworks use [Amazon Leadership Principles](https://www.amazon.jobs/en/principles) + [Canva Values](https://www.canva.com/careers/) (frameworks Mario has used for hiring).
 
 ## Where This Conflicts With "Best Practices"
 
 ### Conflict 1: Prescriptive vs. Flexible
 
-**Mainstream advice:** "Give agents choices, let them figure it out."
+**Mainstream advice:** "Give agents/users choices, let them figure it out." (Common in UX design and flexibility-first frameworks)
 **Mario's approach:** "Be prescriptive. Choices paralyze agents."
 
-**Why Mario's approach:** Watched too many "flexible" automations produce inconsistent results. Prescriptiveness is a feature, not a bug.
+**Why Mario's approach:** Watched too many "flexible" automations produce inconsistent results. See also: [choice paralysis](https://en.wikipedia.org/wiki/Overchoice) and [decision fatigue](https://en.wikipedia.org/wiki/Decision_fatigue). Prescriptiveness is a feature, not a bug.
 
 ### Conflict 2: DRY (Don't Repeat Yourself)
 
-**Mainstream advice:** "Avoid repeating instructions, reference external docs."
+**Mainstream advice:** "[DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) — Avoid repeating instructions, reference external docs."
 **Mario's approach:** "Keep instructions self-contained. Link to external resources, don't delegate to them."
 
-**Why:** If a skill's instructions depend on reading 5 other docs, agents get confused. The skill should be understandable in isolation.
+**Why:** If a skill's instructions depend on reading 5 other docs, agents get confused. The skill should be understandable in isolation. (Related to [progressive disclosure](https://en.wikipedia.org/wiki/Progressive_disclosure) — but with the skill as the primary unit, not external refs.)
 
 ### Conflict 3: Simplicity
 
-**Mainstream advice:** "Keep everything simple and reusable."
+**Mainstream advice:** "Keep everything simple and reusable." (Influenced by [KISS principle](https://en.wikipedia.org/wiki/KISS_principle), minimalism)
 **Mario's approach:** "Make it *complete* before making it simple. Completeness includes validation gates, gotchas, constraints."
 
-**Why:** A simple skill that fails silently is worse than a complex skill that fails loudly.
+**Why:** A simple skill that fails silently is worse than a complex skill that fails loudly. (See also: [fail-fast](https://en.wikipedia.org/wiki/Fail-fast_system) philosophy.)
 
 ## What's Intentionally Missing
 
@@ -135,7 +135,7 @@ Each of the 4 skills demonstrates these principles:
 These principles aren't peer-reviewed or validated by others. They're Mario's personal approach, grounded in experience, not in academic research.
 
 ### No formal framework
-This isn't a methodology (like Agile or Design Thinking). It's a collection of patterns that worked.
+This isn't a formal methodology (like [Agile](https://agilemanifesto.org/) or [Design Thinking](https://www.nngroup.com/articles/design-thinking/)). It's a collection of patterns that worked, grounded in practice rather than prescribed process.
 
 ### No universal applicability claim
 Mario's principles work well for personal skills (code review, hiring, dev workflows). They might not work for public tools (CLI apps, libraries). Adjust as needed.
