@@ -2,6 +2,8 @@
 
 This document captures decisions made during the repository refactoring (June 2026) to align with the AgentSkills specification.
 
+**Update (June 2026, Phase 2):** After the initial refactoring, we realized the repo was duplicating what agentskills.io already provides. We've now simplified to make external resources the source of truth (see decisions 9-11 below). This repo is now minimal: just the 4 example skills + Mario's philosophy + links to external docs.
+
 ## Decision 1: Use CLAUDE.md as the primary authorship guide
 
 ### Decision
@@ -208,3 +210,100 @@ Existing skills keep all instructions in SKILL.md. Did not refactor them into se
 | Don't restructure skills | Zero disruption; simplicity | Older skills don't use full spec |
 
 All decisions prioritize **zero disruption** to existing deployed skills while **enabling better practices** for future skills.
+
+---
+
+## Decision 9: Simplify CLAUDE.md to just reference AGENTS.md
+
+### Decision
+Rewrote CLAUDE.md to be a minimal 8-line pointer to AGENTS.md and external resources (agentskills.io).
+
+### Why
+- CLAUDE.md was duplicating the entire AgentSkills specification we'd already fetched
+- The official spec is better maintained and more authoritative at https://agentskills.io
+- Keeping a copy here creates maintenance burden and will diverge over time
+- Claude can read CLAUDE.md, but it should point to the real source, not duplicate it
+
+### How
+- CLAUDE.md now says: "See AGENTS.md for Mario's philosophy. For spec guidance, see https://agentskills.io"
+- This keeps the file minimal and Claude knows where to look for current guidance
+
+### Trade-offs
+- Requires internet access to agentskills.io (but that's where the spec lives anyway)
+- **Benefit**: Single source of truth; much easier to maintain
+
+---
+
+## Decision 10: Delete CONTRIBUTING.md
+
+### Decision
+Removed CONTRIBUTING.md since it duplicated what agentskills.io already provides.
+
+### Why
+- CONTRIBUTING.md was a "quick-start for creating skills"
+- AgentSkills has the `/skill-creator` tool that's better maintained and more interactive
+- Keeping docs in sync with the official guide is unnecessary overhead
+- Users are better served by the official tool than our static docs
+
+### How
+- Deleted CONTRIBUTING.md entirely
+- Updated README.md to point to `/skill-creator` skill
+- Added link to https://agentskills.io/guide in README
+
+### Trade-offs
+- Users need to know about `/skill-creator` (documented in README)
+- **Benefit**: Zero maintenance burden; users get the latest, best-maintained workflow
+
+---
+
+## Decision 11: Delete SKILL.template.md
+
+### Decision
+Removed SKILL.template.md. Skills are now created via `/skill-creator` skill.
+
+### Why
+- The template was our attempt to guide new skills
+- AgentSkills spec already has templates and the `/skill-creator` tool is better maintained
+- The `make generate name=X` command becomes less useful if nobody uses it
+- Centralizing skill creation in `/skill-creator` means one workflow, one source of truth
+
+### How
+- Deleted SKILL.template.md
+- Removed `make generate` from the Makefile (users should use `/skill-creator`)
+- Added note in README that `/skill-creator` is the way forward
+
+### Trade-offs
+- Losing the ability to quickly scaffold with `make generate`
+- **Benefit**: Unified skill creation workflow; single source of truth
+
+---
+
+## Decision 12: Make this repo minimal and focus on examples
+
+### Decision
+The repository is now minimal:
+- 4 example skills (code-review, dev-workflow, pump-to-obsidian, resume-review)
+- AGENTS.md (Mario's philosophy only)
+- DECISIONS.md (this file, for posterity)
+- README.md (installation + links to external resources)
+- CLAUDE.md (minimal pointer)
+
+### Why
+- This repository serves two purposes:
+  1. Installable plugin with working examples
+  2. Documentation of Mario's approach
+- We shouldn't duplicate what agentskills.io already maintains better
+- The examples (4 skills) are the real value here—they show patterns
+- Documentation should point to the source, not copy it
+
+### How
+- Deleted CONTRIBUTING.md, SKILL.template.md
+- Simplified CLAUDE.md to a pointer
+- Simplified AGENTS.md to philosophy + patterns
+- README is now 30 lines with clear links
+
+### Result
+- **What to keep reading here**: AGENTS.md (philosophy), the 4 skills (examples)
+- **What to learn from agentskills.io**: Specification, authorship guides, `/skill-creator` tool
+- **Total doc lines**: ~400 (was 767 after first refactoring)
+- **Maintenance burden**: Minimal—no need to keep docs in sync with external resources

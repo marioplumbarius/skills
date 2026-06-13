@@ -2,59 +2,47 @@
 
 A library of agent skills distilled from Mario's mental models, values, and approach to thinking and problem-solving.
 
-Skills live under `.agents/skills/<name>/SKILL.md`. A `skills` symlink and the
-`.claude-plugin/` manifests expose them to Claude Code's plugin loader without
-moving them out of `.agents/skills/`.
+Skills live under `.agents/skills/<name>/SKILL.md`. A `skills` symlink and the `.claude-plugin/` manifests expose them to Claude Code's plugin loader.
 
-## Use the skills in Claude Code (CLI + web)
+## Install in Claude Code (CLI + web)
 
-This repo is a Claude Code plugin marketplace. Install it from any Claude Code
-session:
+This repo is a Claude Code plugin marketplace. Install it from any Claude Code session:
 
 ```bash
 /plugin marketplace add marioplumbarius/skills
 /plugin install mario-skills@marioplumbarius
 ```
 
-The skills then appear namespaced, e.g. `/mario-skills:pump-to-obsidian`,
-`/mario-skills:code-review`. Works in Claude Code on the web too — cloud
-sessions fetch the marketplace from GitHub. No version is pinned in
-`plugin.json`, so every pushed commit auto-refreshes for installed users.
+The skills then appear namespaced: `/mario-skills:code-review`, `/mario-skills:dev-workflow`, etc. Works in Claude Code on the web too — cloud sessions fetch from GitHub. No version is pinned, so every commit auto-refreshes for installed users.
 
-> The `skills` entry is a git symlink to `.agents/skills`. Symlinked plugin
-> skill dirs can be flaky on some hosts (notably Windows). If discovery fails,
-> migrate `.agents/skills/*` to a real `skills/` directory.
+## Install in Claude app (claude.ai / Desktop)
 
-## Use the skills in the Claude app (claude.ai / Desktop)
-
-The Claude app uses a separate, upload-based system — it can't pull from
-GitHub. Package a skill and upload it under **Settings → Capabilities →
-Skills → Upload skill**:
+Package a skill and upload it under **Settings → Capabilities → Skills → Upload skill**:
 
 ```bash
-# from repo root, zip one skill so the archive holds <name>/SKILL.md
 ( cd .agents/skills && zip -r ../../<name>.zip <name> )
 ```
 
-Note: skills that rely on `gh`, git, or the GitHub MCP (`code-review`,
-`dev-workflow`, `pump-to-obsidian`) load in the app but their GitHub/PR steps
-won't run there.
+Note: skills that rely on `gh`, git, or the GitHub MCP won't run fully in the app, but will load.
 
-## Contributing Skills
+## Creating Skills
 
-Want to create or study skills? Start here:
+Use the `/skill-creator` skill in Claude Code to create new skills. It follows the [AgentSkills specification](https://agentskills.io/specification).
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Quick-start guide: create a skill in 5 minutes
-- **[CLAUDE.md](CLAUDE.md)** — Comprehensive authorship guide (for Claude's reference)
-- **[AGENTS.md](AGENTS.md)** — Mario's workflow and best practices
-- **[DECISIONS.md](DECISIONS.md)** — Why the repo is structured this way
+For Mario's skill creation philosophy, see [AGENTS.md](AGENTS.md).
 
-## Available Commands
+## Examples in This Repo
 
-```bash
-make generate name=my-skill  # Create a new skill
-make validate file=<path>    # Check constraints (lines, tokens, etc.)
-make help                    # Show all commands
-```
+- **`code-review`** — Severity-tiered PR review with multi-lens analysis
+- **`dev-workflow`** — Six-phase feature development with design gates
+- **`pump-to-obsidian`** — Autonomous GitHub operations with approval gates
+- **`resume-review`** — Multi-framework hiring scorecard
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for examples and testing instructions.
+Study these for patterns.
+
+## References
+
+- [AGENTS.md](AGENTS.md) — Mario's skill philosophy and workflow
+- [DECISIONS.md](DECISIONS.md) — Why the repo is structured this way
+- [AgentSkills Specification](https://agentskills.io/specification) — The standard
+- [Authorship Guide](https://agentskills.io/guide) — How to build skills

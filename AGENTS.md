@@ -1,144 +1,127 @@
-# Mario’s Skills Repository — Workflow & Best Practices
+# Mario's Skills Philosophy
 
-This document captures Mario’s personal approach to building agent skills. It reflects lessons from creating `code-review`, `dev-workflow`, `pump-to-obsidian`, and `resume-review`.
+This document captures lessons from building skills for code review, development workflows, autonomous operations, and hiring decisions.
 
-**For the technical specification and authorship guide, see [CLAUDE.md](CLAUDE.md).**
+## Core Principles
 
-## The Core Workflow
+### Ground in expertise, not hypotheticals
 
-When building a new skill, follow this process:
+Every skill should reflect *actual* patterns you've solved repeatedly. If writing a code-review skill, you have strong opinions about code quality. If building a resume-review skill, you've screened hundreds of resumes.
 
-1. **Use Amazon’s Working Backwards** — Ask clarifying questions. Understand the real problem, not what the user *thinks* the problem is.
-2. **Craft a tight description** — Imperative, specific, under 1024 characters. This determines whether the agent even *considers* the skill.
-3. **Map use cases** — Identify 3–5 scenarios where the skill applies. Identify keywords users would say.
-4. **Write step-by-step instructions** — Favoring *procedures* (how to do X) over *declarations* (what X produces).
-5. **Build in validation gates** — Especially for autonomous operations (PRs, file writes, network calls). Always ask before executing.
-6. **Add a Gotchas section** — Document fragile operations, edge cases, and things that surprised you.
-7. **Validate and iterate** — `make validate file=<path>`. Run through the skill with a test user. Revise.
-8. **Commit and PR** — Branch, commit, push, open PR with clear use cases.
-
-## Common Rules
-
-- **Always ask before proceeding** — Especially for any operation that touches files, networks, or external systems.
-- **Make small, clear commits** — One skill per commit, one change per commit if iterating.
-- **Test with a real user** — Ask the user: “Does this skill do what you expected?” before calling it done.
-- **If multiple ways exist, pick one** — Mention alternatives briefly. Default to the one that’s safest or most consistent with the codebase.
-
-## Best Practices Distilled
-
-### Ground your skill in real expertise
-
-Effective skills come from *actual* domain knowledge. If writing a code-review skill, you need strong opinions about what constitutes good code. If building a resume-review skill, you’ve screened hundreds of resumes.
-
-**Don’t write skills for hypotheticals.** Write them for patterns you’ve seen repeatedly.
+**Don't write skills for one-off tasks or theoretical problems.**
 
 ### Be prescriptive when fragility matters
 
 ```markdown
-❌ Bad:   “You can use git or gh to fetch the branch.”
-✅ Good:  “Always use `gh pr diff` because it avoids local clone overhead.
-          Fallback to `git diff` only if gh is not available.”
+❌ Bad:   "You can use either approach"
+✅ Good:  "Always use approach X because [reason].
+          Fallback to Y only if [conditions]."
 ```
 
-When operations are fragile, consistency matters, or a specific sequence is essential — be explicit about *why*.
+When operations are fragile, consistency matters, or a specific sequence is essential—be explicit about *why*.
 
-### Add what the agent lacks, omit what it knows
+### Favor defaults, not menus
 
-The agent already knows:
-- How to use Bash, Python, git
-- General software engineering concepts
-- How to write clear code
+When multiple tools or approaches work:
+- Pick one as the default
+- Explain why it's the best choice
+- Mention alternatives briefly
 
-Teach it *your* mental model:
-- Your code-review rubric (simplicity + testability + correctness)
-- Your decision-making framework (Amazon LPs, SMART scoring)
-- Your process (phases, gates, checklists)
+This saves agents from decision paralysis.
 
 ### Design coherent units
 
-A skill should solve a *class* of problems, not a one-off task. “Code review” is coherent. “Review my PR from yesterday” is not. “End-to-end feature development” is coherent. “Fix this specific bug” is not.
+A skill solves a *class* of problems, not a one-off task:
+- ✅ "Code review" (applies to any PR)
+- ✅ "End-to-end feature development" (applies to any non-trivial change)
+- ❌ "Review my PR from yesterday" (one-off)
+- ❌ "Fix this specific bug" (one-off)
 
-**Test:** Can you describe the skill in one sentence? If not, it may be too broad or incoherent.
+**Test**: Can you describe the skill in one sentence? If not, it may be incoherent.
 
-### Aim for moderate detail
+### Validation loops protect against mistakes
 
-Too little: “Write good code” is not actionable.
-Too much: 40 sections with every edge case is overwhelming.
-
-Target: 5–8 distinct sections, each with a clear purpose. One section per major phase or decision point.
-
-### Validation loops are your friend
-
-For autonomous operations (PR merges, file writes, commits), use validation gates:
+For autonomous operations (PR merges, file writes, commits):
 
 ```markdown
-Present the plan to the user:
-- [What you decided]
-- [What will change]
-Then ask: “Proceed?”
-
-Only execute after explicit approval.
+1. Present the plan to the user:
+   - [What you decided]
+   - [What will change]
+2. Ask: "Proceed?"
+3. Only execute after explicit approval
 ```
 
-This prevents accidental merges, secret leaks, or bad commits.
+This prevents accidental commits, secret leaks, or bad merges.
 
-### Structure for progressive disclosure
+### Moderate detail is your target
 
-Keep `SKILL.md` under 500 lines. Move heavy reference material to `references/REFERENCE.md`. Agents load metadata → instructions → references (on demand).
+Too little: "Write good code" is not actionable.
+Too much: 40 sections with every edge case is overwhelming.
 
-If your skill is approaching 400 lines:
-1. Remove redundant examples
-2. Move detailed reference to `references/`
-3. Move templates to `assets/`
-4. Link to them instead
+Target: 5–8 distinct sections. One section per major decision point.
 
-### Gotchas section is mandatory
+## Mario's Workflow
 
-Every skill should have a “Gotchas” section documenting:
-- Operations that broke things before
-- Assumptions that must hold
-- Common mistakes
-- Surprising behaviors
+1. **Use Working Backwards** — Ask clarifying questions. Understand the real problem.
+2. **Craft the description** — Imperative, specific, under 1024 characters. This determines whether the agent even considers the skill.
+3. **Map use cases** — Identify 3–5 scenarios where the skill applies.
+4. **Write step-by-step instructions** — Favor *procedures* (how to do X) over *declarations* (what X produces).
+5. **Build validation gates** — Especially for autonomous operations. Always ask before executing.
+6. **Document gotchas** — Edge cases, fragile operations, things that surprised you.
+7. **Validate and iterate** — `make validate file=<path>`. Run through with a test user.
+8. **Create a PR** — Branch, commit, push. Include clear use cases in the PR description.
 
-**Example from `code-review`:**
-- Don’t flag style issues a linter already enforces
-- Tests that only mock aren’t real coverage
-- If PR description is vague, flag it
+## The Skills in This Repository
 
-**Example from `pump-to-obsidian`:**
-- Never commit secrets (API keys, tokens, passwords)
-- Always target the Obsidian vault, never the code repo
-- Record what actually happened, not what “should have” happened
+### code-review
+**Pattern**: Multi-lens review with severity tiers.
+- Applies three distinct lenses (correctness, simplicity, testability, readability) in priority order
+- Groups feedback by file and severity
+- Uses a clear recommendation format (APPROVE / REQUEST CHANGES / NEEDS DISCUSSION)
 
-## Project Structure
+### dev-workflow
+**Pattern**: Six-phase feature development with hard constraints.
+- Phase 1: Baseline (run tests first)
+- Phase 2: Design (write HLD, get approval)
+- Phase 3: Implement (task-by-task, with verification gates)
+- Phase 4: Pull request (push and create PR)
+- Phase 5: Self-review (post trade-off commentary)
+- Phase 6: Retrospective (update docs)
 
-```
-.agents/skills/
-├── code-review/SKILL.md
-│   └── Multi-lens review: correctness, simplicity, testability, readability
-├── dev-workflow/SKILL.md
-│   └── Six-phase feature dev: baseline → design → implement → test → PR → review
-├── pump-to-obsidian/SKILL.md
-│   └── Autonomous: plan → PR → merge with explicit approval gates
-└── resume-review/SKILL.md
-    └── Scoring framework: SMART audit + LP signal detection + verdict
-```
+### pump-to-obsidian
+**Pattern**: Autonomous GitHub operations with approval gates.
+- Phase 1: Gather context from session
+- Phase 2: Draft note + present plan (GATE: approval)
+- Phase 3: Open PR (create branch, commit, open PR)
+- Phase 4: Auto-merge + report (only after approval)
 
-Each skill demonstrates a different pattern. Study them for inspiration.
+Key lesson: Approval in phase 2 authorizes both the content *and* the auto-merge. Don't skip gates.
+
+### resume-review
+**Pattern**: Multi-framework scoring system.
+- Phase 1: Parse inputs (extract role, must-haves, LP emphasis)
+- Phase 2: SMART audit (check each resume bullet)
+- Phase 3: LP signal detection (scan for evidence of principles)
+- Phase 4: LP scoring (0–3 per principle)
+- Phase 5: Section-by-section feedback
+- Phase 6: Verdict (advance / reject / judgment call)
+
+Key lesson: Scoring frameworks need clear decision rules upfront. Don't improvise at the end.
+
+## External Resources
+
+For everything else, refer to the authoritative sources:
+
+- **AgentSkills Specification**: https://agentskills.io/specification
+- **Authorship Guide**: https://agentskills.io/guide
+- **Skill Creator Tool**: Use `/skill-creator` in Claude Code or Claude app
+
+These are the source of truth. They update faster than this repo can.
 
 ## Available Commands
 
 ```bash
-make generate name=my-skill      # Create new skill from template
-make validate file=<path>         # Check lines, tokens, description length
-make help                         # Show all commands
+make validate file=.agents/skills/my-skill/SKILL.md  # Check constraints
 ```
 
-For quick contribution steps, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## References
-
-- **AgentSkills Specification** — https://agentskills.io/specification
-- **Authorship Guide** — [CLAUDE.md](CLAUDE.md) (what Claude reads)
-- **Contributing** — [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Examples** — Study the 4 skills in `.agents/skills/`
+To create a new skill, use the `/skill-creator` skill, which follows the authoritative AgentSkills process.
