@@ -17,7 +17,7 @@ The plugin is available in the Claude Code marketplace.
 **Step 2:** Use any skill:
 
 ```bash
-/mario-skills:skill-name
+/marioplumbarius/skills:skill-name
 ```
 
 The plugin auto-updates with every release.
