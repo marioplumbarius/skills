@@ -1,6 +1,7 @@
 # Agent Skills Authorship
 
-See [AGENTS.md](AGENTS.md) for Mario's skill creation philosophy and best practices.
+For Mario's skill creation philosophy and best practices, see:
+- [[AGENTS.md]] (or [AGENTS.md](AGENTS.md) if wikilinks aren't supported)
 
 For the authoritative specification and guidance, see:
 - **AgentSkills Specification**: https://agentskills.io/specification

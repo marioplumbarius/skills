@@ -42,7 +42,8 @@ Study these for patterns.
 
 ## References
 
-- [AGENTS.md](AGENTS.md) — Mario's skill philosophy and workflow
+- [AGENTS.md](AGENTS.md) — Mario's skill philosophy, principles, and three-pass workflow
+- [RATIONALE.md](RATIONALE.md) — Why these principles work (grounded in experience)
 - [DECISIONS.md](DECISIONS.md) — Why the repo is structured this way
 - [AgentSkills Specification](https://agentskills.io/specification) — The standard
 - [Authorship Guide](https://agentskills.io/guide) — How to build skills

@@ -60,53 +60,44 @@ Too much: 40 sections with every edge case is overwhelming.
 
 Target: 5–8 distinct sections. One section per major decision point.
 
-## Mario's Workflow
+## Skill Creation: Three-Pass Approach
 
+Create skills using this three-pass process (in priority order: Mario's philosophy overrides external specs overrides skill-creator defaults):
+
+### Pass 1: Use /skill-creator (foundation)
+Run the `/skill-creator` skill in Claude Code or Claude app. It handles:
+- Skill scaffolding (directory, SKILL.md)
+- YAML frontmatter validation
+- Basic instruction structure
+
+### Pass 2: Apply External Specs (standards)
+Once the skill-creator creates the skeleton, enhance it using:
+- [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, progressive disclosure
+- [Authorship Guide](https://agentskills.io/guide) — Best practices from the community
+
+### Pass 3: Apply Mario's Philosophy (customization)
+Layer on Mario's approach:
 1. **Use Amazon's Working Backwards** — Ask clarifying questions. Understand the real problem.
-2. **Craft the description** — Imperative, specific, under 1024 characters. This determines whether the agent even considers the skill.
+2. **Craft the description** — Imperative, specific, under 1024 characters.
 3. **Map use cases** — Identify 3–5 scenarios where the skill applies.
-4. **Write step-by-step instructions** — Favor *procedures* (how to do X) over *declarations* (what X produces).
-5. **Build validation gates** — Especially for autonomous operations. Always ask before executing.
-6. **Document gotchas** — Edge cases, fragile operations, things that surprised you.
-7. **Validate and iterate** — `make validate file=<path>`. Run through with a test user.
-8. **Create a PR** — Branch, commit, push. Include clear use cases in the PR description.
+4. **Write procedures** — Favor *how to do X* over *what X produces*.
+5. **Build validation gates** — Ask before executing autonomous operations.
+6. **Document gotchas** — Edge cases, fragile operations, surprises.
+7. **Validate and iterate** — Run through with a test user.
+8. **Create a PR** — Clear use cases in description.
+
+**Tension is healthy:** These three passes may conflict. Resolve conflicts favoring Mario's philosophy (bottom of this list).
 
 ## The Skills in This Repository
 
-### code-review
-**Pattern**: Multi-lens review with severity tiers.
-- Applies three distinct lenses (correctness, simplicity, testability, readability) in priority order
-- Groups feedback by file and severity
-- Uses a clear recommendation format (APPROVE / REQUEST CHANGES / NEEDS DISCUSSION)
+| Skill | Pattern | Key Lesson |
+|-------|---------|-----------|
+| **code-review** | Multi-lens review with severity tiers | Lenses (correctness → simplicity → testability → readability) applied in priority order to avoid scope creep |
+| **dev-workflow** | Six-phase feature dev with hard constraints | Run baseline tests first; design gate blocks implementation; self-review posts trade-offs |
+| **pump-to-obsidian** | Autonomous GitHub ops with approval gates | Approval in phase 2 authorizes both content *and* auto-merge; don't skip gates |
+| **resume-review** | Multi-framework scoring system | Clear decision rules upfront (0–3 per principle); don't improvise at the end |
 
-### dev-workflow
-**Pattern**: Six-phase feature development with hard constraints.
-- Phase 1: Baseline (run tests first)
-- Phase 2: Design (write HLD, get approval)
-- Phase 3: Implement (task-by-task, with verification gates)
-- Phase 4: Pull request (push and create PR)
-- Phase 5: Self-review (post trade-off commentary)
-- Phase 6: Retrospective (update docs)
-
-### pump-to-obsidian
-**Pattern**: Autonomous GitHub operations with approval gates.
-- Phase 1: Gather context from session
-- Phase 2: Draft note + present plan (GATE: approval)
-- Phase 3: Open PR (create branch, commit, open PR)
-- Phase 4: Auto-merge + report (only after approval)
-
-Key lesson: Approval in phase 2 authorizes both the content *and* the auto-merge. Don't skip gates.
-
-### resume-review
-**Pattern**: Multi-framework scoring system.
-- Phase 1: Parse inputs (extract role, must-haves, LP emphasis)
-- Phase 2: SMART audit (check each resume bullet)
-- Phase 3: LP signal detection (scan for evidence of principles)
-- Phase 4: LP scoring (0–3 per principle)
-- Phase 5: Section-by-section feedback
-- Phase 6: Verdict (advance / reject / judgment call)
-
-Key lesson: Scoring frameworks need clear decision rules upfront. Don't improvise at the end.
+See the skill files in `.agents/skills/*/SKILL.md` for full details and implementation patterns.
 
 ## External Resources
 
@@ -117,11 +108,3 @@ For everything else, refer to the authoritative sources:
 - **Skill Creator Tool**: Use `/skill-creator` in Claude Code or Claude app
 
 These are the source of truth. They update faster than this repo can.
-
-## Available Commands
-
-```bash
-make validate file=.agents/skills/my-skill/SKILL.md  # Check constraints
-```
-
-To create a new skill, use the `/skill-creator` skill, which follows the authoritative AgentSkills process.
