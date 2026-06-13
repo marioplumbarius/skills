@@ -19,7 +19,6 @@ Don't skip this step. The scaffolding matters.
 
 Once the skill-creator creates the skeleton, enhance it using:
 - [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, progressive disclosure patterns
-- [Authorship Guide](https://agentskills.io/guide) — Best practices from the community
 - [Best Practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) — Claude's official guidance
 
 Study existing skills in `.agents/skills/*/SKILL.md` for patterns.
