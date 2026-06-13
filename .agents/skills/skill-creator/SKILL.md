@@ -35,7 +35,7 @@ Once the skill-creator creates the skeleton, enhance it using:
 - [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, progressive disclosure patterns
 - [Best Practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) — Claude's official guidance
 
-Study existing skills in `.agents/skills/mario-*/SKILL.md` for patterns.
+Study existing skills in `.agents/skills/*/SKILL.md` for patterns.
 
 ---
 

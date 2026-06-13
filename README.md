@@ -34,9 +34,11 @@ Note: Some skills require external tools (git, GitHub CLI, GitHub MCP) and may h
 
 ## Create new skills
 
-Use `/mario-skill-creator` to build skills following Mario's philosophy: grounded expertise, prescriptive instructions, validation gates, and clear patterns.
+Use `skill-creator` to build skills following Mario's philosophy: grounded expertise, prescriptive instructions, validation gates, and clear patterns.
 
 The skill creator guides you through four steps aligned with the AgentSkills specification and tested best practices.
+
+After installation, invoke it as `/mario-skills:skill-creator`.
 
 ## Contribute
 
