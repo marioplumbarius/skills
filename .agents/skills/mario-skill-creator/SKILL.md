@@ -137,12 +137,3 @@ This friction is healthy. You're optimizing for how Mario himself would perform 
 
 For deeper understanding of the philosophy behind these principles, see [RATIONALE.md](RATIONALE.md).
 
-## External Resources
-
-For everything else, refer to the authoritative sources:
-
-- **AgentSkills Specification**: https://agentskills.io/specification
-- **Best Practices**: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-- **Skill Creator Tool**: Use `/mario-skill-creator` in Claude Code or Claude app
-
-These are the source of truth. They update faster than this repo can.
