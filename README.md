@@ -4,31 +4,27 @@ A library of agent skills built on Mario's philosophy: grounded in expertise, pr
 
 For Mario's approach to skill creation, see [AGENTS.md](AGENTS.md).
 
-## Install in Claude Code (CLI + web)
+## Install
 
-**Step 1:** Add the marketplace:
+The plugin is available in the Claude Code marketplace.
 
-```bash
-/plugin marketplace add marioplumbarius/skills
-```
-
-**Step 2:** Install the plugin:
+**Step 1:** Install from marketplace:
 
 ```bash
-/plugin install mario-skills@marioplumbarius
+/plugin install mario-skills
 ```
 
-Skills will appear as `/mario-skills:skill-name`. The plugin auto-updates with every commit.
-
-## Install in Claude app (claude.ai / Desktop)
-
-**Step 1:** Package a skill:
+**Step 2:** Use any skill:
 
 ```bash
-( cd .agents/skills && zip -r ../../<skill-name>.zip <skill-name> )
+/mario-skills:skill-name
 ```
 
-**Step 2:** Upload under **Settings → Capabilities → Skills → Upload skill**
+The plugin auto-updates with every release.
+
+## Use in Claude app (claude.ai / Desktop)
+
+Go to **Settings → Capabilities → Skills** to upload individual skills if needed.
 
 Note: Some skills require external tools (git, GitHub CLI, GitHub MCP) and may have limited functionality in the app.
 
