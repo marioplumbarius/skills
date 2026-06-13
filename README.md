@@ -27,9 +27,9 @@ Note: skills that rely on `gh`, git, or the GitHub MCP won't run fully in the ap
 
 ## Creating Skills
 
-Use the `/skill-creator` skill in Claude Code to create new skills. It follows the [AgentSkills specification](https://agentskills.io/specification).
+Use the `/mario-skill-creator` skill in Claude Code or Claude app to create new skills in Mario's style. It guides you through a four-step process aligned with the [AgentSkills specification](https://agentskills.io/specification) and Mario's philosophy.
 
-For Mario's skill creation philosophy, see [AGENTS.md](AGENTS.md).
+For reference, the full guide is in [AGENTS.md](AGENTS.md) or directly in the skill at [`.agents/skills/mario-skill-creator/SKILL.md`](.agents/skills/mario-skill-creator/SKILL.md).
 
 ## Examples in This Repo
 
@@ -42,8 +42,8 @@ Study these for patterns.
 
 ## References
 
-- [AGENTS.md](AGENTS.md) — Mario's skill philosophy, principles, and three-pass workflow
+- **Mario's Skill Philosophy**: See `/mario-skill-creator` skill or [`.agents/skills/mario-skill-creator/SKILL.md`](.agents/skills/mario-skill-creator/SKILL.md)
 - [RATIONALE.md](RATIONALE.md) — Why these principles work (grounded in experience)
 - [DECISIONS.md](DECISIONS.md) — Why the repo is structured this way
 - [AgentSkills Specification](https://agentskills.io/specification) — The standard
-- [Authorship Guide](https://agentskills.io/guide) — How to build skills
+- [Best Practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) — Claude's official guidance

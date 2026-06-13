@@ -2,9 +2,6 @@
 
 SKILLS_DIR := .agents/skills
 
-# Note: Skills are now created via the /skill-creator tool (https://agentskills.io/guide)
-# The 'generate' target is kept for reference but not recommended
-
 validate-file: ## Check that file= is set and exists. Used as a dependency by validate-* targets.
 	@test -n "$(file)" || (echo "ERROR: file is required." && exit 1)
 	@test -f "$(file)" || (echo "ERROR: file '$(file)' not found." && exit 1)
