@@ -27,7 +27,7 @@ When multiple tools or approaches work:
 - Explain why it's the best choice
 - Mention alternatives briefly
 
-This saves agents from decision paralysis.
+This saves agents from [decision paralysis](https://en.wikipedia.org/wiki/Overchoice) and [decision fatigue](https://en.wikipedia.org/wiki/Decision_fatigue).
 
 ### Design coherent units
 
@@ -51,12 +51,12 @@ For autonomous operations (PR merges, file writes, commits):
 3. Only execute after explicit approval
 ```
 
-This prevents accidental commits, secret leaks, or bad merges.
+This prevents accidental commits, secret leaks, or bad merges. Related to [fail-safe](https://en.wikipedia.org/wiki/Fail-safe) and [human-in-the-loop](https://en.wikipedia.org/wiki/Human-in-the-loop) design patterns.
 
 ### Moderate detail is your target
 
 Too little: "Write good code" is not actionable.
-Too much: 40 sections with every edge case is overwhelming.
+Too much: 40 sections with every edge case is overwhelming (see [cognitive load theory](https://en.wikipedia.org/wiki/Cognitive_load)).
 
 Target: 5–8 distinct sections. One section per major decision point.
 
@@ -72,12 +72,12 @@ Run the `/skill-creator` skill in Claude Code or Claude app. It handles:
 
 ### Pass 2: Apply External Specs (standards)
 Once the skill-creator creates the skeleton, enhance it using:
-- [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, progressive disclosure
+- [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, [progressive disclosure](https://en.wikipedia.org/wiki/Progressive_disclosure)
 - [Authorship Guide](https://agentskills.io/guide) — Best practices from the community
 
 ### Pass 3: Apply Mario's Philosophy (customization)
 Layer on Mario's approach:
-1. **Use Amazon's Working Backwards** — Ask clarifying questions. Understand the real problem.
+1. **Use [Amazon's Working Backwards](https://www.amazon.jobs/en/landing_pages/working-backwards)** — Ask clarifying questions. Understand the real problem.
 2. **Craft the description** — Imperative, specific, under 1024 characters.
 3. **Map use cases** — Identify 3–5 scenarios where the skill applies.
 4. **Write procedures** — Favor *how to do X* over *what X produces*.
@@ -95,7 +95,7 @@ Layer on Mario's approach:
 | **code-review** | Multi-lens review with severity tiers | Lenses (correctness → simplicity → testability → readability) applied in priority order to avoid scope creep |
 | **dev-workflow** | Six-phase feature dev with hard constraints | Run baseline tests first; design gate blocks implementation; self-review posts trade-offs |
 | **pump-to-obsidian** | Autonomous GitHub ops with approval gates | Approval in phase 2 authorizes both content *and* auto-merge; don't skip gates |
-| **resume-review** | Multi-framework scoring system | Clear decision rules upfront (0–3 per principle); don't improvise at the end |
+| **resume-review** | [Amazon LP](https://www.amazon.jobs/en/principles) + [Canva Values](https://www.canva.com/careers/) scoring | Clear decision rules upfront (0–3 per principle); don't improvise at the end |
 
 See the skill files in `.agents/skills/*/SKILL.md` for full details and implementation patterns.
 
