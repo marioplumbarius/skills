@@ -104,9 +104,6 @@ When they conflict, the customization layer (Mario) wins because it's grounded i
 
 ## What's Intentionally Missing
 
-### No approval from external experts
-These principles aren't peer-reviewed or validated by others. They're Mario's personal approach, grounded in experience, not in academic research.
-
 ### No formal framework
 This isn't a formal methodology (like [Agile](https://agilemanifesto.org/) or [Design Thinking](https://www.nngroup.com/articles/design-thinking/)). It's a collection of patterns that worked, grounded in practice rather than prescribed process.
 
