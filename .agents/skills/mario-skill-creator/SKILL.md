@@ -14,7 +14,7 @@ metadata:
 
 # Mario Skill Creator
 
-This is a playbook for creating skills in Mario's style.
+Create agent skills following Mario's philosophy and best practices.
 
 ---
 
