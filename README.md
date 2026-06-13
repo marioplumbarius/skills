@@ -11,7 +11,7 @@ The plugin is available in the Claude Code marketplace.
 **Step 1:** Install from marketplace:
 
 ```bash
-/plugin install mario-skills
+/plugin install marioplumbarius/skills
 ```
 
 **Step 2:** Use any skill:
