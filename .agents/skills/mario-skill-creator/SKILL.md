@@ -135,4 +135,4 @@ This friction is healthy. You're optimizing for how Mario himself would perform 
 
 ## Why These Principles
 
-For deeper understanding of the philosophy behind these principles, see [RATIONALE.md](RATIONALE.md).
+For deeper understanding of the philosophy behind these principles, see [RATIONALE.md](references/RATIONALE.md).
