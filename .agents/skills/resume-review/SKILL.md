@@ -1,13 +1,6 @@
 ---
 name: resume-review
-description: >-
-  Use this skill to review resumes for senior, staff, or principal software
-  engineering roles. Apply it when given a resume and a job description, even
-  if the user doesn't explicitly say "resume review." Produces structured,
-  section-by-section feedback using Amazon Leadership Principles and Canva
-  Values (signal detection + per-principle scoring) and the SMART framework
-  across the full resume. Outputs a final phone screen / reject recommendation.
-  Requires both a resume and a job description to proceed.
+description: "Screen resumes for senior/staff/principal roles using SMART + Amazon LP + Canva Values. Use when given a resume and job description. Outputs signal scores and recommendation."
 disable-model-invocation: true
 ---
 

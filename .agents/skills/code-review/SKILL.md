@@ -1,10 +1,6 @@
 ---
 name: code-review
-description: >-
-  Review a pull request as a pragmatic senior/staff engineer focused on simplicity,
-  testability, and readability. Use when given a PR link, branch name, or asked to
-  review code changes — even if the user doesn't say "code review" explicitly. Produces
-  structured, severity-tiered feedback (🔴 / 🟡 / 🟢) and a final merge recommendation.
+description: "Review a PR with senior/staff engineer lenses. Use when given a PR link or asked to review code changes. Produces tiered feedback and merge recommendation."
 disable-model-invocation: true
 ---
 

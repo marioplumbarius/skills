@@ -1,13 +1,6 @@
 ---
 name: pump-to-obsidian
-description: >-
-  Capture context from the current Claude session (Claude Code, cowork, or
-  chat) and push it as a new note into Mario's Obsidian vault on GitHub
-  (marioplumbarius/obsidian). Use when the user says "pump to obsidian", "save
-  this to my vault/obsidian", "send this session to my notes", or otherwise
-  wants the takeaways, decisions, code, and open questions from the current
-  session preserved in their Obsidian vault. Always shows a plan for approval
-  before opening a PR, then auto-merges once approved.
+description: "Capture session context as an Obsidian note and push it via PR. Use when the user says 'pump to obsidian' or 'save to my vault'. Shows plan for approval before auto-merge."
 disable-model-invocation: true
 ---
 
