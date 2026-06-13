@@ -28,14 +28,8 @@ Go to **Settings → Capabilities → Skills** to upload individual skills if ne
 
 Note: Some skills require external tools (git, GitHub CLI, GitHub MCP) and may have limited functionality in the app.
 
-## Create new skills
+## Create or update skills
 
-Use `skill-creator` to build skills following Mario's philosophy: grounded expertise, prescriptive instructions, validation gates, and clear patterns.
-
-The skill creator guides you through four steps aligned with the AgentSkills specification and tested best practices.
+Use `skill-creator` to build or update skills following Mario's philosophy.
 
 After installation, invoke it as `/mario-skills:skill-creator`.
-
-## Contribute
-
-See [AGENTS.md](AGENTS.md) for the available actions and how the system works.
