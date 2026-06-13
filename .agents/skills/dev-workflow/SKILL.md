@@ -1,7 +1,16 @@
 ---
 name: dev-workflow
-description: "End-to-end development lifecycle skill: build a High-Level Design, scope it into tasks, implement task by task, verify tests/types/lint, commit, open a PR, and self-review. Use when starting a new feature, bug fix, or any non-trivial change that needs a design step before coding."
-disable-model-invocation: true
+description: >-
+  End-to-end development lifecycle skill: build a High-Level Design, scope
+  it into tasks, implement task by task, verify tests/types/lint, commit,
+  open a PR, and self-review. Use when starting a new feature, bug fix, or
+  any non-trivial change that needs a design step before coding.
+compatibility: Requires git, a project test suite, type checker, and linter
+  (as configured in the target repo).
+metadata:
+  author: mario
+  version: "1.0"
+  category: development
 ---
 
 # Dev Workflow

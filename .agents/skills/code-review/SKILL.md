@@ -5,7 +5,11 @@ description: >-
   testability, and readability. Use when given a PR link, branch name, or asked to
   review code changes — even if the user doesn't say "code review" explicitly. Produces
   structured, severity-tiered feedback (🔴 / 🟡 / 🟢) and a final merge recommendation.
-disable-model-invocation: true
+compatibility: Requires git and GitHub CLI (gh) to fetch diffs and post reviews.
+metadata:
+  author: mario
+  version: "1.0"
+  category: code-review
 ---
 
 # Code Review

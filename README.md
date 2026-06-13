@@ -40,7 +40,21 @@ Note: skills that rely on `gh`, git, or the GitHub MCP (`code-review`,
 `dev-workflow`, `pump-to-obsidian`) load in the app but their GitHub/PR steps
 won't run there.
 
+## Contributing Skills
+
+Want to create or study skills? Start here:
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Quick-start guide: create a skill in 5 minutes
+- **[CLAUDE.md](CLAUDE.md)** — Comprehensive authorship guide (for Claude's reference)
+- **[AGENTS.md](AGENTS.md)** — Mario's workflow and best practices
+- **[DECISIONS.md](DECISIONS.md)** — Why the repo is structured this way
+
 ## Available Commands
+
 ```bash
-make help
+make generate name=my-skill  # Create a new skill
+make validate file=<path>    # Check constraints (lines, tokens, etc.)
+make help                    # Show all commands
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for examples and testing instructions.
