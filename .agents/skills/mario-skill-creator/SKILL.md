@@ -5,7 +5,7 @@ description: >-
   need to author a new skill or understand how to structure one. Walks you through a
   four-step process: foundational scaffolding, external specifications, Mario's principles,
   and crafting the final content. Follow the three-pass approach for best results.
-compatibility: Works in Claude Code and Claude app. No external tools required.
+compatibility: Works in any Claude environment. No external tools required.
 metadata:
   author: mario
   version: "1.0"
