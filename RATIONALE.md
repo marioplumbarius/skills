@@ -78,33 +78,6 @@ Resolving this: Mario's rule wins. It's more restrictive, but produces better sk
 
 When they conflict, the customization layer (Mario) wins because it's grounded in repeated experience.
 
-## The Four Skills as Evidence
-
-Each of the 4 skills demonstrates these principles:
-
-### `mario-code-review`
-- **Principle: Be prescriptive when fragility matters**
-  - Code review feedback can be harsh or encouraging. The skill uses structured severity tiers (🔴 / 🟡 / 🟢) to make the feedback constructive.
-- **Principle: Design coherent units**
-  - "Review a PR" is broad enough to apply to any PR, any language. But narrow enough to have a clear workflow.
-
-### `mario-dev-workflow`
-- **Principle: Validation loops**
-  - Design approval (phase 2 gate) blocks implementation. This catches misunderstandings before wasted work.
-- **Principle: Ground in expertise**
-  - The workflow reflects Mario's experience shipping features: baseline tests → design → implementation → PR.
-
-### `mario-pump-to-obsidian`
-- **Principle: Favor defaults**
-  - Default destination: `Inbox/`, target repo: `marioplumbarius/obsidian`. But these are configurable.
-- **Principle: Validation loops (critical for autonomous ops)**
-  - Three explicit gates before auto-merge. Approval in phase 2 authorizes both content and auto-merge.
-
-### `mario-resume-review`
-- **Principle: Moderate detail**
-  - 6 phases, clear decision rules, no ambiguity. Not 20 phases, not 2.
-- **Principle: Ground in expertise**
-  - Scoring frameworks use [Amazon Leadership Principles](https://www.amazon.jobs/en/principles) + [Canva Values](https://www.canva.com/careers/) (frameworks Mario has used for hiring).
 
 ## Where This Conflicts With "Best Practices"
 
