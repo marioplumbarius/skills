@@ -1,6 +1,6 @@
-# Mario's Skill Philosophy — Rationale
+# RATIONALE
 
-This document explains the *why* behind the principles documented in [AGENTS.md](AGENTS.md). It captures the reasoning, sources, and lessons that shaped Mario's approach to skill authorship.
+This document explains the *why* behind the principles documented in the Mario Skill Creator. It captures the reasoning, sources, and lessons that shaped Mario's approach to skill authorship.
 
 ## Core Principles: Where They Come From
 
@@ -115,7 +115,7 @@ Mario's principles work well for personal skills (code review, hiring, dev workf
 
 ## How to Use This
 
-If you're creating skills and disagree with something in [AGENTS.md](AGENTS.md):
+If you're creating skills and disagree with something in the Mario Skill Creator:
 
 1. **Understand the rationale** (read this file)
 2. **Respect the principle**, even if you'd do it differently

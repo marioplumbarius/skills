@@ -133,6 +133,10 @@ The three frameworks (skill-creator → external specs → Mario's philosophy) m
 
 This friction is healthy. You're optimizing for how Mario himself would perform the task.
 
+## Why These Principles
+
+For deeper understanding of the philosophy behind these principles, see [RATIONALE.md](RATIONALE.md).
+
 ## External Resources
 
 For everything else, refer to the authoritative sources:
