@@ -1,6 +1,6 @@
 # Mario's Skills Philosophy
 
-This is a playbook for creating skills in Mario's style. It captures lessons from building skills for code review, development workflows, autonomous operations, and hiring decisions.
+This is a playbook for creating skills in Mario's style.
 
 ---
 
