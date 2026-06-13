@@ -1,4 +1,4 @@
-# Mario's Skills Philosophy
+# AGENTS
 
 For Mario's comprehensive skill creation guide, use the `/mario-skill-creator` skill in Claude Code or Claude app.
 
