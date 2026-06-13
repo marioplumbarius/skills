@@ -16,7 +16,7 @@ This document explains the *why* behind the principles documented in [AGENTS.md]
 
 **Why:** When an operation can break (file writes, merges, deletions), agents *should* follow a specific sequence. A well-intentioned "do whatever works" approach usually leads to subtle bugs.
 
-**Example:** In `pump-to-obsidian`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
+**Example:** In `mario-pump-to-obsidian`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
 
 **Source:** Learned from debugging automation that had multiple failure modes. The more operations are autonomous, the more prescriptive the instructions need to be.
 
@@ -24,7 +24,7 @@ This document explains the *why* behind the principles documented in [AGENTS.md]
 
 **Why:** When a skill says "you can use X or Y," agents often freeze or pick arbitrarily. If you, the author, have a strong opinion about which is better, *say so*. This doesn't mean "never mention alternatives"—it means defaulting to the best choice and explaining why.
 
-**Example:** In `code-review`, always use `gh pr diff` (not `git diff`) because it avoids local cloning overhead. But if GitHub CLI isn't available, fall back to git. The default is clear; the exception is documented.
+**Example:** In `mario-code-review`, always use `gh pr diff` (not `git diff`) because it avoids local cloning overhead. But if GitHub CLI isn't available, fall back to git. The default is clear; the exception is documented.
 
 **Source:** Watching agents and humans get paralyzed by choice. Constraints are actually freeing.
 
@@ -41,7 +41,7 @@ This document explains the *why* behind the principles documented in [AGENTS.md]
 
 **Why:** Autonomous operations (merging PRs, writing files, deleting things) can destroy work in seconds. The cost of asking "are you sure?" is tiny compared to the cost of accidentally merging the wrong branch.
 
-**Example:** In `pump-to-obsidian`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
+**Example:** In `mario-pump-to-obsidian`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
 
 **Source:** Experience with "smart" automation that did exactly what I asked, not what I *meant*. The three-part gate (present plan → ask → execute) has never failed me.
 
@@ -82,25 +82,25 @@ When they conflict, the customization layer (Mario) wins because it's grounded i
 
 Each of the 4 skills demonstrates these principles:
 
-### `code-review`
+### `mario-code-review`
 - **Principle: Be prescriptive when fragility matters**
   - Code review feedback can be harsh or encouraging. The skill uses structured severity tiers (🔴 / 🟡 / 🟢) to make the feedback constructive.
 - **Principle: Design coherent units**
   - "Review a PR" is broad enough to apply to any PR, any language. But narrow enough to have a clear workflow.
 
-### `dev-workflow`
+### `mario-dev-workflow`
 - **Principle: Validation loops**
   - Design approval (phase 2 gate) blocks implementation. This catches misunderstandings before wasted work.
 - **Principle: Ground in expertise**
   - The workflow reflects Mario's experience shipping features: baseline tests → design → implementation → PR.
 
-### `pump-to-obsidian`
+### `mario-pump-to-obsidian`
 - **Principle: Favor defaults**
   - Default destination: `Inbox/`, target repo: `marioplumbarius/obsidian`. But these are configurable.
 - **Principle: Validation loops (critical for autonomous ops)**
   - Three explicit gates before auto-merge. Approval in phase 2 authorizes both content and auto-merge.
 
-### `resume-review`
+### `mario-resume-review`
 - **Principle: Moderate detail**
   - 6 phases, clear decision rules, no ambiguity. Not 20 phases, not 2.
 - **Principle: Ground in expertise**

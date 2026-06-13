@@ -13,7 +13,7 @@ This repo is a Claude Code plugin marketplace. Install it from any Claude Code s
 /plugin install mario-skills@marioplumbarius
 ```
 
-The skills then appear namespaced: `/mario-skills:code-review`, `/mario-skills:dev-workflow`, etc. Works in Claude Code on the web too — cloud sessions fetch from GitHub. No version is pinned, so every commit auto-refreshes for installed users.
+The skills then appear namespaced: `/mario-skills:mario-code-review`, `/mario-skills:mario-dev-workflow`, etc. Works in Claude Code on the web too — cloud sessions fetch from GitHub. No version is pinned, so every commit auto-refreshes for installed users.
 
 ## Install in Claude app (claude.ai / Desktop)
 
@@ -33,10 +33,10 @@ For Mario's skill creation philosophy, see [AGENTS.md](AGENTS.md).
 
 ## Examples in This Repo
 
-- **`code-review`** — Severity-tiered PR review with multi-lens analysis
-- **`dev-workflow`** — Six-phase feature development with design gates
-- **`pump-to-obsidian`** — Autonomous GitHub operations with approval gates
-- **`resume-review`** — Multi-framework hiring scorecard
+- **`mario-code-review`** — Severity-tiered PR review with multi-lens analysis
+- **`mario-dev-workflow`** — Six-phase feature development with design gates
+- **`mario-pump-to-obsidian`** — Autonomous GitHub operations with approval gates
+- **`mario-resume-review`** — Multi-framework hiring scorecard
 
 Study these for patterns.
 
