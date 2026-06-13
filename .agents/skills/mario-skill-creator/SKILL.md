@@ -12,7 +12,7 @@ metadata:
   category: skill-creation
 ---
 
-# Mario's Skills Philosophy
+# Mario Skill Creator
 
 This is a playbook for creating skills in Mario's style.
 
