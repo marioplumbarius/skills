@@ -30,6 +30,4 @@ Note: Some skills require external tools (git, GitHub CLI, GitHub MCP) and may h
 
 ## Create or update skills
 
-Use `skill-creator` to build or update skills following Mario's philosophy.
-
-After installation, invoke it as `/mario-skills:skill-creator`.
+Use `.agents/skills/skill-creator` from this repo to build or update skills following Mario's philosophy.
