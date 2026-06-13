@@ -1,16 +1,41 @@
 # Mario's Skills Philosophy
 
-This document captures lessons from building skills for code review, development workflows, autonomous operations, and hiring decisions.
+This is a playbook for creating skills in Mario's style. It captures lessons from building skills for code review, development workflows, autonomous operations, and hiring decisions.
 
-## Core Principles
+---
 
-### Ground in expertise, not hypotheticals
+## Step 1: Start with /skill-creator (Foundation)
+
+Run the `/skill-creator` skill in Claude Code or Claude app. It handles:
+- Skill scaffolding (directory, SKILL.md)
+- YAML frontmatter validation
+- Basic instruction structure
+
+Don't skip this step. The scaffolding matters.
+
+---
+
+## Step 2: Apply External Specs (Standards)
+
+Once the skill-creator creates the skeleton, enhance it using:
+- [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, progressive disclosure patterns
+- [Authorship Guide](https://agentskills.io/guide) — Best practices from the community
+
+Study existing skills in `.agents/skills/*/SKILL.md` for patterns.
+
+---
+
+## Step 3: Apply Mario's Philosophy (Customization)
+
+Layer on Mario's approach. These principles shape how to write instructions:
+
+### Principle 1: Ground in expertise, not hypotheticals
 
 Every skill should reflect *actual* patterns you've solved repeatedly. If writing a code-review skill, you have strong opinions about code quality. If building a resume-review skill, you've screened hundreds of resumes.
 
 **Don't write skills for one-off tasks or theoretical problems.**
 
-### Be prescriptive when fragility matters
+### Principle 2: Be prescriptive when fragility matters
 
 ```markdown
 ❌ Bad:   "You can use either approach"
@@ -20,16 +45,16 @@ Every skill should reflect *actual* patterns you've solved repeatedly. If writin
 
 When operations are fragile, consistency matters, or a specific sequence is essential—be explicit about *why*.
 
-### Favor defaults, not menus
+### Principle 3: Favor defaults, not menus
 
 When multiple tools or approaches work:
 - Pick one as the default
 - Explain why it's the best choice
 - Mention alternatives briefly
 
-This saves agents from [decision paralysis](https://en.wikipedia.org/wiki/Overchoice) and [decision fatigue](https://en.wikipedia.org/wiki/Decision_fatigue).
+This prevents choice paralysis and overwhelm.
 
-### Design coherent units
+### Principle 4: Design coherent units
 
 A skill solves a *class* of problems, not a one-off task:
 - ✅ "Code review" (applies to any PR)
@@ -39,7 +64,7 @@ A skill solves a *class* of problems, not a one-off task:
 
 **Test**: Can you describe the skill in one sentence? If not, it may be incoherent.
 
-### Validation loops protect against mistakes
+### Principle 5: Validation loops protect against mistakes
 
 For autonomous operations (PR merges, file writes, commits):
 
@@ -51,42 +76,52 @@ For autonomous operations (PR merges, file writes, commits):
 3. Only execute after explicit approval
 ```
 
-This prevents accidental commits, secret leaks, or bad merges. Related to [fail-safe](https://en.wikipedia.org/wiki/Fail-safe) and [human-in-the-loop](https://en.wikipedia.org/wiki/Human-in-the-loop) design patterns.
+This prevents accidental commits, secret leaks, or bad merges.
 
-### Moderate detail is your target
+### Principle 6: Moderate detail is your target
 
 Too little: "Write good code" is not actionable.
-Too much: 40 sections with every edge case is overwhelming (see [cognitive load theory](https://en.wikipedia.org/wiki/Cognitive_load)).
+Too much: 40 sections with every edge case is overwhelming.
 
 Target: 5–8 distinct sections. One section per major decision point.
 
+---
+
 ## Skill Creation: Three-Pass Approach
 
-Create skills using this three-pass process (in priority order: Mario's philosophy overrides external specs overrides skill-creator defaults):
+---
 
-### Pass 1: Use /skill-creator (foundation)
-Run the `/skill-creator` skill in Claude Code or Claude app. It handles:
-- Skill scaffolding (directory, SKILL.md)
-- YAML frontmatter validation
-- Basic instruction structure
+## Step 4: Craft the Skill Content
 
-### Pass 2: Apply External Specs (standards)
-Once the skill-creator creates the skeleton, enhance it using:
-- [AgentSkills Specification](https://agentskills.io/specification) — YAML fields, [progressive disclosure](https://en.wikipedia.org/wiki/Progressive_disclosure)
-- [Authorship Guide](https://agentskills.io/guide) — Best practices from the community
+Once you've applied Steps 1–3, write the skill instruction with these substeps:
 
-### Pass 3: Apply Mario's Philosophy (customization)
-Layer on Mario's approach:
-1. **Use [Amazon's Working Backwards](https://www.amazon.jobs/en/landing_pages/working-backwards)** — Ask clarifying questions. Understand the real problem.
-2. **Craft the description** — Imperative, specific, under 1024 characters.
-3. **Map use cases** — Identify 3–5 scenarios where the skill applies.
-4. **Write procedures** — Favor *how to do X* over *what X produces*.
-5. **Build validation gates** — Ask before executing autonomous operations.
-6. **Document gotchas** — Edge cases, fragile operations, surprises.
-7. **Validate and iterate** — Run through with a test user.
-8. **Create a PR** — Clear use cases in description.
+1. **Use [Amazon's Working Backwards](https://www.amazon.jobs/en/landing_pages/working-backwards)** — Ask clarifying questions. Understand the real problem. Don't assume.
 
-**Tension is healthy:** These three passes may conflict. Resolve conflicts favoring Mario's philosophy (bottom of this list).
+2. **Craft the description** — Imperative phrasing, specific, under 1024 characters. Frame it as an instruction to the agent: "Use this when…"
+
+3. **Map use cases** — Identify 3–5 real scenarios where the skill applies. Include edge cases and non-obvious contexts.
+
+4. **Write procedures** — Favor *how to do X* over *what X produces*. Be prescriptive at fragile points (file writes, merges, deletions).
+
+5. **Build validation gates** — For autonomous operations, always ask before executing: "Proceed?" is not optional.
+
+6. **Document gotchas** — Edge cases, fragile operations, surprises. If an operation can break silently, call it out.
+
+7. **Validate and iterate** — Run through with a test user. Watch for confusion.
+
+8. **Create a PR** — Clear use cases in description. Link to why this skill matters.
+
+---
+
+## Tension Between Frameworks
+
+The three frameworks (skill-creator → external specs → Mario's philosophy) may conflict. Resolve in priority order:
+
+1. **Mario's philosophy** (top priority)
+2. **External specs**
+3. **Skill-creator defaults**
+
+This friction is healthy. You're optimizing for how Mario himself would perform the task.
 
 ## The Skills in This Repository
 

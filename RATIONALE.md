@@ -6,7 +6,7 @@ This document explains the *why* behind the principles documented in [AGENTS.md]
 
 ### 1. Ground in expertise, not hypotheticals
 
-**Why:** Skills are instructions for agents to follow. An instruction is only as good as the mental model behind it. If you're writing a code-review skill, you need to have *opinions* about code quality—formed by actually reviewing code, not by reading best-practice articles. This aligns with the [learning by doing](https://en.wikipedia.org/wiki/Experiential_learning) principle from cognitive psychology.
+**Why:** Skills are instructions for agents to follow. An instruction is only as good as the mental model behind it. If you're writing a code-review skill, you need to have *opinions* about code quality—formed by actually reviewing code, not by reading best-practice articles. This aligns with experiential learning: knowledge from direct experience is stronger than theory.
 
 **Source:** Years of doing actual code reviews, hiring interviews, and skill creation. When instructions are vague, it's because the author hasn't solved the problem repeatedly enough to develop a clear pattern.
 
@@ -113,21 +113,21 @@ Each of the 4 skills demonstrates these principles:
 **Mainstream advice:** "Give agents/users choices, let them figure it out." (Common in UX design and flexibility-first frameworks)
 **Mario's approach:** "Be prescriptive. Choices paralyze agents."
 
-**Why Mario's approach:** Watched too many "flexible" automations produce inconsistent results. See also: [choice paralysis](https://en.wikipedia.org/wiki/Overchoice) and [decision fatigue](https://en.wikipedia.org/wiki/Decision_fatigue). Prescriptiveness is a feature, not a bug.
+**Why Mario's approach:** Watched too many "flexible" automations produce inconsistent results. Agents freeze when given choices, and prescriptiveness prevents this. It's a feature, not a bug.
 
 ### Conflict 2: DRY (Don't Repeat Yourself)
 
-**Mainstream advice:** "[DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) — Avoid repeating instructions, reference external docs."
+**Mainstream advice:** "DRY principle — Avoid repeating instructions, reference external docs."
 **Mario's approach:** "Keep instructions self-contained. Link to external resources, don't delegate to them."
 
-**Why:** If a skill's instructions depend on reading 5 other docs, agents get confused. The skill should be understandable in isolation. (Related to [progressive disclosure](https://en.wikipedia.org/wiki/Progressive_disclosure) — but with the skill as the primary unit, not external refs.)
+**Why:** If a skill's instructions depend on reading 5 other docs, agents get confused. The skill should be understandable in isolation, using progressive disclosure with the skill itself as the primary unit.
 
 ### Conflict 3: Simplicity
 
-**Mainstream advice:** "Keep everything simple and reusable." (Influenced by [KISS principle](https://en.wikipedia.org/wiki/KISS_principle), minimalism)
+**Mainstream advice:** "Keep everything simple and reusable." (Influenced by KISS principle — keep it simple, stupid — and minimalism)
 **Mario's approach:** "Make it *complete* before making it simple. Completeness includes validation gates, gotchas, constraints."
 
-**Why:** A simple skill that fails silently is worse than a complex skill that fails loudly. (See also: [fail-fast](https://en.wikipedia.org/wiki/Fail-fast_system) philosophy.)
+**Why:** A simple skill that fails silently is worse than a complex skill that fails loudly. Fail-fast is better than silent failures.
 
 ## What's Intentionally Missing
 
