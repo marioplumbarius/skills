@@ -62,7 +62,7 @@ Target: 5–8 distinct sections. One section per major decision point.
 
 ## Mario's Workflow
 
-1. **Use Working Backwards** — Ask clarifying questions. Understand the real problem.
+1. **Use Amazon's Working Backwards** — Ask clarifying questions. Understand the real problem.
 2. **Craft the description** — Imperative, specific, under 1024 characters. This determines whether the agent even considers the skill.
 3. **Map use cases** — Identify 3–5 scenarios where the skill applies.
 4. **Write step-by-step instructions** — Favor *procedures* (how to do X) over *declarations* (what X produces).
