@@ -3,9 +3,9 @@
   "owner": { "name": "Mario Souza" },
   "plugins": [
     {
-      "name": "mario-skills",
+      "name": "marioplumbarius/skills",
       "source": ".",
-      "description": "Mario's personal collection of agent skills (dev-workflow, code-review, resume-review, pump-to-obsidian)."
+      "description": "Mario's personal collection of agent skills built on expertise, prescriptive instructions, and clear patterns."
     }
   ]
 }

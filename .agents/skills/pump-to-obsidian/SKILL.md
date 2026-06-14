@@ -8,7 +8,13 @@ description: >-
   wants the takeaways, decisions, code, and open questions from the current
   session preserved in their Obsidian vault. Always shows a plan for approval
   before opening a PR, then auto-merges once approved.
-disable-model-invocation: true
+compatibility: >-
+  Requires git, GitHub CLI (gh), and access to the GitHub MCP. Targets the
+  marioplumbarius/obsidian repository; not suitable for other vaults.
+metadata:
+  author: mario
+  version: "1.0"
+  category: knowledge-management
 ---
 
 # Pump to Obsidian

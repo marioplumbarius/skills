@@ -1,6 +1,6 @@
 {
-  "name": "mario-skills",
-  "description": "Mario's personal collection of agent skills: dev-workflow, code-review, resume-review, and pump-to-obsidian.",
+  "name": "marioplumbarius/skills",
+  "description": "Mario's personal collection of agent skills built on expertise, prescriptive instructions, and clear patterns.",
   "author": { "name": "Mario Souza" },
   "homepage": "https://github.com/marioplumbarius/skills",
   "repository": "https://github.com/marioplumbarius/skills",

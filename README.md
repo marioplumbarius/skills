@@ -1,46 +1,27 @@
 # skills
 
-A library of agent skills distilled from Mario's mental models, values, and approach to thinking and problem-solving.
+A library of agent skills built on Mario's philosophy: grounded in expertise, prescriptive when it matters, and designed for clarity and coherence.
 
-Skills live under `.agents/skills/<name>/SKILL.md`. A `skills` symlink and the
-`.claude-plugin/` manifests expose them to Claude Code's plugin loader without
-moving them out of `.agents/skills/`.
+For Mario's approach to skill creation, see [AGENTS.md](AGENTS.md).
 
-## Use the skills in Claude Code (CLI + web)
+## Install
 
-This repo is a Claude Code plugin marketplace. Install it from any Claude Code
-session:
+The plugin is available in the Claude Code marketplace.
 
-```bash
-/plugin marketplace add marioplumbarius/skills
-/plugin install mario-skills@marioplumbarius
-```
-
-The skills then appear namespaced, e.g. `/mario-skills:pump-to-obsidian`,
-`/mario-skills:code-review`. Works in Claude Code on the web too — cloud
-sessions fetch the marketplace from GitHub. No version is pinned in
-`plugin.json`, so every pushed commit auto-refreshes for installed users.
-
-> The `skills` entry is a git symlink to `.agents/skills`. Symlinked plugin
-> skill dirs can be flaky on some hosts (notably Windows). If discovery fails,
-> migrate `.agents/skills/*` to a real `skills/` directory.
-
-## Use the skills in the Claude app (claude.ai / Desktop)
-
-The Claude app uses a separate, upload-based system — it can't pull from
-GitHub. Package a skill and upload it under **Settings → Capabilities →
-Skills → Upload skill**:
+**Step 1:** Install from marketplace:
 
 ```bash
-# from repo root, zip one skill so the archive holds <name>/SKILL.md
-( cd .agents/skills && zip -r ../../<name>.zip <name> )
+/plugin install marioplumbarius/skills
 ```
 
-Note: skills that rely on `gh`, git, or the GitHub MCP (`code-review`,
-`dev-workflow`, `pump-to-obsidian`) load in the app but their GitHub/PR steps
-won't run there.
+**Step 2:** Use any skill:
 
-## Available Commands
 ```bash
-make help
+/marioplumbarius/skills:skill-name
 ```
+
+The plugin auto-updates with every release.
+
+## Create or update skills
+
+Use `.agents/skills/skill-creator` from this repo to build or update skills following Mario's philosophy.
