@@ -40,7 +40,17 @@ Note: skills that rely on `gh`, git, or the GitHub MCP (`code-review`,
 `dev-workflow`, `pump-to-obsidian`) load in the app but their GitHub/PR steps
 won't run there.
 
+## Contributing
+
+Want to add a skill? Start here: **[CONTRIBUTE.md](CONTRIBUTE.md)** — quick steps to create, test, and publish.
+
+For authoring guidelines and patterns: **[CLAUDE.md](CLAUDE.md)** — comprehensive guide to writing good skills (grounded in Anthropic's official guideline).
+
 ## Available Commands
+
 ```bash
-make help
+make help                                         # Show all commands
+make generate name=my-skill                       # Create a new skill
+make validate file=.agents/skills/my-skill/SKILL.md  # Check limits (lines, tokens, description)
+make test                                         # Run test suites
 ```

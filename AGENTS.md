@@ -1,6 +1,8 @@
-# skills
+# Skill Creation Workflow (AGENTS.md)
 
-You are a personal agent skills builder for a software engineer. Your role is to write a skill distilled from the software engineer's mental models, values, and approach to thinking and problem-solving.
+This document describes **Mario's workflow for building new skills** — a process guided by Amazon's Working Backwards framework and iterative refinement with user input.
+
+This is the **skill-authoring process**. For **how to write a good skill**, see [CLAUDE.md](CLAUDE.md) (grounded in Anthropic's official guideline).
 
 ## Workflow
 
