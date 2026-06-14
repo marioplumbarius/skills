@@ -1,5 +1,5 @@
 ---
-name: dev-workflow
+name: mario-dev-workflow
 description: "Design → implement → test → PR workflow for features and non-trivial changes. Use when starting a new feature, bug fix, or any substantial change that needs a design phase before coding."
 disable-model-invocation: true
 ---

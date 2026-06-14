@@ -1,5 +1,5 @@
 ---
-name: pump-to-obsidian
+name: mario-pump-to-obsidian
 description: "Capture session context as an Obsidian note and push it via PR. Use when the user says 'pump to obsidian' or 'save to my vault'. Shows plan for approval before auto-merge."
 disable-model-invocation: true
 ---

@@ -1,5 +1,5 @@
 ---
-name: code-review
+name: mario-code-review
 description: "Review a PR with senior/staff engineer lenses. Use when given a PR link or asked to review code changes. Produces tiered feedback and merge recommendation."
 disable-model-invocation: true
 ---

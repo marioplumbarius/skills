@@ -1,5 +1,5 @@
 ---
-name: resume-review
+name: mario-resume-review
 description: "Screen resumes for senior/staff/principal roles using SMART + Amazon LP + Canva Values. Use when given a resume and job description. Outputs signal scores and recommendation."
 disable-model-invocation: true
 ---
