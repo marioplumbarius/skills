@@ -1,5 +1,5 @@
 ---
-name: resume-review
+name: mario-resume-review
 description: >-
   Use this skill to review resumes for senior, staff, or principal software
   engineering roles. Apply it when given a resume and a job description, even

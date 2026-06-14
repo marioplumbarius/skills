@@ -1,5 +1,5 @@
 ---
-name: pump-to-obsidian
+name: mario-pump-to-obsidian
 description: >-
   Capture context from the current Claude session (Claude Code, cowork, or
   chat) and push it as a new note into Mario's Obsidian vault on GitHub

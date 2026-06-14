@@ -1,5 +1,5 @@
 ---
-name: code-review
+name: mario-code-review
 description: >-
   Review a pull request as a pragmatic senior/staff engineer focused on simplicity,
   testability, and readability. Use when given a PR link, branch name, or asked to
