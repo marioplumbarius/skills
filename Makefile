@@ -1,6 +1,18 @@
-.PHONY: validate-file validate-lines validate-tokens validate-description validate test help
+.PHONY: generate validate-file validate-lines validate-tokens validate-description validate test help
 
 SKILLS_DIR := .agents/skills
+SKILL_TEMPLATE := SKILL.template.md
+
+generate: ## Generate a new skill from the template. Usage: make generate name=<name>
+	@test -n "$(name)" || (echo "ERROR: name is required." && exit 1)
+	
+	mkdir -p $(SKILLS_DIR)/$(name)
+
+	cat $(SKILL_TEMPLATE) \
+	| sed "s/<name>/$(name)/g" \
+	> $(SKILLS_DIR)/$(name)/SKILL.md
+
+	@echo "Skill $(name) generated successfully."
 
 validate-file: ## Check that file= is set and exists. Used as a dependency by validate-* targets.
 	@test -n "$(file)" || (echo "ERROR: file is required." && exit 1)

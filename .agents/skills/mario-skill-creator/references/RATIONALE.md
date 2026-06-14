@@ -16,7 +16,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** When an operation can break (file writes, merges, deletions), agents *should* follow a specific sequence. A well-intentioned "do whatever works" approach usually leads to subtle bugs.
 
-**Example:** In `mario-obsedian-pump`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
+**Example:** In `mario-pump-to-obsidian`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
 
 **Source:** Learned from debugging automation that had multiple failure modes. The more operations are autonomous, the more prescriptive the instructions need to be.
 
@@ -24,7 +24,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** When a skill says "you can use X or Y," agents often freeze or pick arbitrarily. If you, the author, have a strong opinion about which is better, *say so*. This doesn't mean "never mention alternatives"—it means defaulting to the best choice and explaining why.
 
-**Example:** In `code-review`, always use `gh pr diff` (not `git diff`) because it avoids local cloning overhead. But if GitHub CLI isn't available, fall back to git. The default is clear; the exception is documented.
+**Example:** When reviewing a PR, default to `gh pr diff` (not `git diff`) because it avoids local cloning overhead. But if GitHub CLI isn't available, fall back to git. The default is clear; the exception is documented.
 
 **Source:** Watching agents and humans get paralyzed by choice. Constraints are actually freeing.
 
@@ -41,7 +41,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** Autonomous operations (merging PRs, writing files, deleting things) can destroy work in seconds. The cost of asking "are you sure?" is tiny compared to the cost of accidentally merging the wrong branch.
 
-**Example:** In `mario-obsedian-pump`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
+**Example:** In `mario-pump-to-obsidian`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
 
 **Source:** Experience with "smart" automation that did exactly what I asked, not what I *meant*. The three-part gate (present plan → ask → execute) has never failed me.
 
@@ -60,7 +60,7 @@ This document explains the *why* behind the principles documented in the Mario S
 Creating a skill involves:
 1. **Scaffolding** (skill-creator handles this)
 2. **Standards** (AgentSkills specification is the community standard)
-3. **Personal philosophy** (Mario's approach, tested through 4 live skills)
+3. **Personal philosophy** (Mario's approach, tested through 2 live skills)
 
 These three sources sometimes conflict. Example:
 - [AgentSkills spec](https://agentskills.io/specification) says "description can be up to 1024 characters"
@@ -118,4 +118,4 @@ If you're creating skills and disagree with something in the Mario Skill Creator
 2. **Respect the principle**, even if you'd do it differently
 3. **If you find a gap or flaw**, document it and raise it (with examples)
 
-Good skill creation is iterative. These principles have been tested on 4 production skills. But they're not gospel—they're working hypotheses.
+Good skill creation is iterative. These principles have been tested on 2 production skills. But they're not gospel—they're working hypotheses.

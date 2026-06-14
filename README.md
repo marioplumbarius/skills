@@ -22,4 +22,4 @@ The plugin auto-updates with every release.
 
 ## Manage skills
 
-Use `.agents/skills/skill-creator` from this repo to build or update skills following Mario's philosophy.
+Use `.agents/skills/mario-skill-creator` from this repo to build or update skills following Mario's philosophy.

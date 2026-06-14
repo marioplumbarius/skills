@@ -4,5 +4,6 @@
   "author": { "name": "Mario Souza" },
   "homepage": "https://github.com/marioplumbarius/skills",
   "repository": "https://github.com/marioplumbarius/skills",
-  "license": "MIT"
+  "license": "MIT",
+  "skillsDirectory": ".agents/skills"
 }
