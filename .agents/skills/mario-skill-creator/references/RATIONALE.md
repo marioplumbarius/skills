@@ -16,7 +16,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** When an operation can break (file writes, merges, deletions), agents *should* follow a specific sequence. A well-intentioned "do whatever works" approach usually leads to subtle bugs.
 
-**Example:** In `pump-to-obsidian`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
+**Example:** In `mario-obsedian-pump`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
 
 **Source:** Learned from debugging automation that had multiple failure modes. The more operations are autonomous, the more prescriptive the instructions need to be.
 
@@ -41,7 +41,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** Autonomous operations (merging PRs, writing files, deleting things) can destroy work in seconds. The cost of asking "are you sure?" is tiny compared to the cost of accidentally merging the wrong branch.
 
-**Example:** In `pump-to-obsidian`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
+**Example:** In `mario-obsedian-pump`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
 
 **Source:** Experience with "smart" automation that did exactly what I asked, not what I *meant*. The three-part gate (present plan → ask → execute) has never failed me.
 

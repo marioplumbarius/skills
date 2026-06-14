@@ -1,5 +1,5 @@
 ---
-name: pump-to-obsidian
+name: mario-obsidian-to-pump
 description: >-
   Capture context from the current Claude session (Claude Code, cowork, or
   chat) and push it as a new note into Mario's Obsidian vault on GitHub
@@ -117,7 +117,7 @@ and stop — do not silently fall back to a different repo.
    - base = default branch, head = the new branch
    - title: `Pump to Obsidian: <title>`
    - body: short summary of what the note captures + a line noting it was
-     generated from a Claude session via the pump-to-obsidian skill.
+     generated from a Claude session via the mario-obsedian-pump skill.
 
 Report the PR number and URL.
 

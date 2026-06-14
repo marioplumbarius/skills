@@ -1,5 +1,5 @@
 ---
-name: skill-creator
+name: mario-skill-creator
 description: >-
   Create a new agent skill following Mario's philosophy and best practices. Use when you
   need to author a new skill or understand how to structure one. Walks you through a
