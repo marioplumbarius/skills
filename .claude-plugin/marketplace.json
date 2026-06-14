@@ -3,8 +3,8 @@
   "owner": { "name": "Mario Souza" },
   "plugins": [
     {
-      "name": "marioplumbarius/skills",
-      "source": ".",
+      "name": "marioplumbarius-skills",
+      "source": "./",
       "description": "Mario's personal collection of agent skills built on expertise, prescriptive instructions, and clear patterns."
     }
   ]
