@@ -1,0 +1,71 @@
+{
+  "skill_name": "pr-writer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write me a PR title and description for this diff:\n\n```\ndiff --git a/auth/middleware.ts b/auth/middleware.ts\n--- a/auth/middleware.ts\n+++ b/auth/middleware.ts\n@@ -12,6 +12,18 @@ export function authMiddleware(req, res, next) {\n   const token = req.headers.authorization?.split(' ')[1];\n   if (!token) return res.status(401).json({ error: 'Unauthorized' });\n \n+  try {\n+    const decoded = jwt.verify(token, process.env.JWT_SECRET);\n+    const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);\n+    if (expiresIn < 300) {\n+      // Token expiring soon — issue a refreshed token\n+      const newToken = jwt.sign({ userId: decoded.userId }, process.env.JWT_SECRET, { expiresIn: '1h' });\n+      res.setHeader('X-Refreshed-Token', newToken);\n+    }\n+    req.user = decoded;\n+    next();\n+  } catch (err) {\n+    res.status(401).json({ error: 'Session expired. Please log in again.' });\n+  }\n```",
+      "expected_output": "A title focused on user session continuity or preventing logouts, not on the JWT implementation. Description explains the user experience problem (silent logouts, session loss), not how jwt.verify works.",
+      "assertions": [
+        {
+          "name": "title_is_why_not_what",
+          "description": "Title describes the user-facing motivation, not the implementation mechanism",
+          "check": "Title should NOT contain 'jwt', 'verify', 'middleware', 'token refresh logic', or 'X-Refreshed-Token'. Should reference something like session, logout, expiry, or user experience."
+        },
+        {
+          "name": "title_under_72_chars",
+          "description": "Title is 72 characters or fewer",
+          "check": "Count title characters — must be <= 72"
+        },
+        {
+          "name": "description_explains_problem",
+          "description": "Description explains the user pain or business problem, not the code structure",
+          "check": "Description should NOT just restate what files were changed or describe jwt.sign/jwt.verify. Should explain why sessions expiring matters to users."
+        },
+        {
+          "name": "no_implementation_details_in_description",
+          "description": "Description does not enumerate changed files or explain how the code works",
+          "check": "Description should not say things like 'in middleware.ts', 'jwt.verify', 'X-Refreshed-Token header', 'decoded.exp'"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "hey can you write the pr title and description for me? here's the context: we had a bunch of users complaining they couldn't upload profile pictures larger than 2mb even though we never documented that limit anywhere. we just added a better error message explaining the limit and linking to the docs on how to compress images.",
+      "expected_output": "Title about giving users clear feedback on the upload size limit. Description about the confusion users had and how this reduces support load or improves UX, not about the error message text or which file was changed.",
+      "assertions": [
+        {
+          "name": "title_captures_user_value",
+          "description": "Title captures why this matters (users were confused), not the mechanism (added an error message)",
+          "check": "Title should NOT be 'Add error message for file upload limit' or similar mechanism-first phrasing. Should communicate the user problem being solved."
+        },
+        {
+          "name": "description_references_user_pain",
+          "description": "Description references the user confusion or support complaints, not just 'we added a message'",
+          "check": "Description should mention user confusion, support tickets, undocumented limit, or similar context — not just describe the error message."
+        },
+        {
+          "name": "description_is_concise",
+          "description": "Description is short — one paragraph or a few focused bullets",
+          "check": "Description should be under 100 words. No lengthy bullet lists of implementation details."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "write a PR description for a pure refactor. I extracted a 400-line god class into 4 smaller services: UserService, AuthService, BillingService, and NotificationService. nothing changed externally, all tests pass.",
+      "expected_output": "Honest description of the refactor's value: makes future changes faster, reduces merge conflicts, easier to test in isolation. Title should reflect the maintainability motivation, not list the 4 new classes.",
+      "assertions": [
+        {
+          "name": "title_names_the_value_not_the_files",
+          "description": "Title does not list the new service class names",
+          "check": "Title should NOT enumerate 'UserService, AuthService, BillingService, NotificationService'. Should say something about maintainability, future velocity, or splitting concerns."
+        },
+        {
+          "name": "description_honest_about_refactor",
+          "description": "Description is honest that this is a refactor with no behavior change, and explains why it matters",
+          "check": "Description should acknowledge no behavior change AND explain why the refactor is valuable (testability, change velocity, onboarding, etc.)"
+        }
+      ]
+    }
+  ]
+}
