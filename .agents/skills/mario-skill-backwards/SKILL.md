@@ -1,5 +1,5 @@
 ---
-name: skill-backwards
+name: mario-skill-backwards
 description: >-
   Analyze the current Claude session, apply the STAR framework (Situation,
   Task, Action, Result) to reconstruct the thought process from ideation to
