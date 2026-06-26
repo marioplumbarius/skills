@@ -107,19 +107,21 @@ Once you've applied Steps 1–3, write the skill instruction with these substeps
 
 1. **Use [Amazon's Working Backwards](https://www.amazon.jobs/en/landing_pages/working-backwards)** — Ask clarifying questions. Understand the real problem. Don't assume.
 
-2. **Craft the description** — Imperative phrasing, specific, under 1024 characters. Frame it as an instruction to the agent: "Use this when…"
+2. **Name the skill** — The `name` field and directory name must start with `mario-` (e.g. `mario-pr-pitch`, `mario-skill-backwards`). Never omit the prefix.
 
-3. **Map use cases** — Identify 3–5 real scenarios where the skill applies. Include edge cases and non-obvious contexts.
+3. **Craft the description** — Imperative phrasing, specific, under 1024 characters. Frame it as an instruction to the agent: "Use this when…"
 
-4. **Write procedures** — Favor *how to do X* over *what X produces*. Be prescriptive at fragile points (file writes, merges, deletions).
+4. **Map use cases** — Identify 3–5 real scenarios where the skill applies. Include edge cases and non-obvious contexts.
 
-5. **Build validation gates** — For autonomous operations, always ask before executing: "Proceed?" is not optional.
+5. **Write procedures** — Favor *how to do X* over *what X produces*. Be prescriptive at fragile points (file writes, merges, deletions).
 
-6. **Document gotchas** — Edge cases, fragile operations, surprises. If an operation can break silently, call it out.
+6. **Build validation gates** — For autonomous operations, always ask before executing: "Proceed?" is not optional.
 
-7. **Validate and iterate** — Run through with a test user. Watch for confusion.
+7. **Document gotchas** — Edge cases, fragile operations, surprises. If an operation can break silently, call it out.
 
-8. **Create a PR** — Clear use cases in description. Link to why this skill matters.
+8. **Validate and iterate** — Run through with a test user. Watch for confusion.
+
+9. **Create a PR** — Clear use cases in description. Link to why this skill matters.
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: <name>
+name: mario-<name>
 description: >-
   Use this skill when [describe the task and when to use it].
   Include specific keywords the agent can match. Keep under 1024 characters.
