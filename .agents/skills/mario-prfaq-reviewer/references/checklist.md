@@ -1,8 +1,4 @@
-# PR/FAQ Review Checklist (cached snapshot)
-
-Source of truth: an internal Notion page titled "PR/FAQ Review Checklist" (not linked here — this file is a cached, standalone copy so the skill has no dependency on that private page).
-
-This is a cached copy fetched 2026-07-02. **Do not edit the wording or numbering of these 32 rows** — they are the canonical PR/FAQ rubric. If the source Notion page changes, refresh this file by re-fetching it (e.g. via skill-creator), don't hand-edit it out of sync.
+# PR/FAQ Review Checklist
 
 | # | Best Practice | Examples | How to Use It | How It Helps | Source(s) |
 |---|---|---|---|---|---|
