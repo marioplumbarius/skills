@@ -10,9 +10,8 @@ description: >-
   a PRFAQ and ask "what's missing". Accepts the PRFAQ as pasted text, a local
   file, or an external link (Notion, Google Doc, or generic URL).
 compatibility: >-
-  Uses references/checklist.md (bundled, cached checklist — no live Notion
-  fetch). For link input, uses notion-fetch for Notion URLs or WebFetch for
-  other URLs.
+  Uses references/checklist.md, the bundled canonical checklist. For link
+  input, uses notion-fetch for Notion URLs or WebFetch for other URLs.
 metadata:
   author: mario
   version: "1.0"
@@ -27,7 +26,7 @@ Grade a PR/FAQ document against a canonical 32-item PR/FAQ Review Checklist and 
 
 ## The rule
 
-The checklist in [references/checklist.md](references/checklist.md) is the company's rubric — **never reword, reorder, drop, or add rows to it.** Your only job is to append two columns of assessment. If Mario asks you to change the checklist itself, that's a different task — point him to updating the source Notion page and refreshing this cache (see Gotchas).
+The checklist in [references/checklist.md](references/checklist.md) is the canonical rubric — **never reword, reorder, drop, or add rows to it.** Your only job is to append two columns of assessment. If Mario asks you to change the checklist itself, that's a different task — that means editing `references/checklist.md` directly, deliberately, since it's the source of truth (see Gotchas).
 
 ---
 
@@ -87,7 +86,7 @@ Print the full table — never truncate to "top issues only" unless the user exp
 
 ## Gotchas
 
-- **The checklist is a cached snapshot**, not a live Notion fetch — it was captured from the source page and lives in `references/checklist.md`. If Mario has since edited the Notion checklist, this copy can drift out of date. If he mentions the checklist changed, refresh the file by re-fetching the Notion page rather than hand-editing rows.
+- **`references/checklist.md` is the canonical checklist**, not a cache of something else — there's no separate source to sync from. Changes to the rubric happen by editing this file directly (and reviewing that change like any other edit to a canonical document).
 - **Don't invent evidence.** If a section of the PRFAQ is genuinely ambiguous on a given criterion, mark it `⚠️ Partial` and say what's ambiguous — don't force a `Met` or `Not Met` verdict you can't back with a quote.
 - **`N/A` is an escape hatch, not a shortcut.** Overusing it (especially for FAQ-structure rows like #15, #16) hides real gaps. Default to evaluating every row as `Met`/`Partial`/`Not Met` unless it truly cannot apply.
 - **Long PRFAQs**: if the document is very long, still evaluate all 32 rows — don't skip rows because the doc is dense. Take the time to locate the relevant section for each.
