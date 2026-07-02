@@ -1,7 +1,7 @@
 ---
 name: mario-prfaq-reviewer
 description: >-
-  Review a PR/FAQ document (Amazon Working Backwards format) against Thread's
+  Review a PR/FAQ document (Amazon Working Backwards format) against a
   32-item PR/FAQ Review Checklist and return a readiness matrix — the original
   checklist plus a Status verdict and a Recommended Next Step for every row.
   Use whenever the user asks to review, grade, or check a PRFAQ, press
@@ -21,7 +21,7 @@ metadata:
 
 # PR/FAQ Reviewer
 
-Grade a PR/FAQ document against Thread's canonical 32-item PR/FAQ Review Checklist and hand back an actionable readiness matrix — not just a pass/fail, but exactly what to fix and where.
+Grade a PR/FAQ document against a canonical 32-item PR/FAQ Review Checklist and hand back an actionable readiness matrix — not just a pass/fail, but exactly what to fix and where.
 
 ---
 
