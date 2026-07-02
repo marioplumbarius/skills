@@ -56,7 +56,7 @@ Assign a **Status**:
 - `✅ Met` — the PRFAQ clearly satisfies this practice.
 - `⚠️ Partial` — attempted but weak, vague, or incomplete (e.g., a customer segment named but not narrow; benefits stated but not quantified).
 - `❌ Not Met` — absent entirely.
-- `N/A` — genuinely doesn't apply to this PRFAQ (e.g., row 20's competitive-alternatives FAQ for a purely internal tool with no market alternative). Use sparingly — most rows apply to most PRFAQs — and say why in the next-step column. `N/A` means *the criterion doesn't apply to this kind of product or launch* — it does not mean "the document didn't address it." A gap the document should have covered is `Not Met`, never `N/A`.
+- `N/A` — genuinely doesn't apply to this PRFAQ (e.g., row 20's competitive-alternatives FAQ for a purely internal tool with no market alternative). Use sparingly — most rows apply to most PRFAQs — and say why in the next-step column. `N/A` means *the criterion doesn't apply to this kind of product or launch* — it does not mean "the document didn't address it." A gap the document should have covered is `Not Met`, never `N/A`. Exception: a handful of rows (17, 26, 27, 28, 32) describe the *authoring/review process*, not the document's content — a finished PRFAQ can never provide evidence either way for these, so score them `N/A` by default rather than straining to force a Met/Not Met verdict.
 
 If a criterion is satisfied in one section of the doc but not reinforced elsewhere (e.g., a number appears in the press release but isn't repeated in the FAQ), score on the best evidence found anywhere in the document — don't penalize for lack of repetition. If sections actively contradict each other, that's a `Partial` and the next step should say so.
 
