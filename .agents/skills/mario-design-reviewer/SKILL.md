@@ -2,18 +2,18 @@
 name: mario-design-reviewer
 description: >-
   Review a design doc against a 24-item Design Doc Review Checklist derived
-  from design-review-process.md, and return a readiness matrix — the original
-  checklist plus a Status verdict and a Recommended Next Step for every row.
-  Use whenever the user asks to review, grade, or check a design doc,
-  high-level design, or goals doc — even if they say "review my design doc",
-  "check this against our design review process", "is this design ready for
-  org-wide review", or paste a design doc and ask "what's missing". Accepts
-  the design doc as pasted text, a local file, or an external link (Notion,
-  Google Doc, or generic URL).
+  from references/design-review-process.md, and return a readiness matrix —
+  the original checklist plus a Status verdict and a Recommended Next Step
+  for every row. Use whenever the user asks to review, grade, or check a
+  design doc, high-level design, or goals doc — even if they say "review my
+  design doc", "check this against our design review process", "is this
+  design ready for org-wide review", or paste a design doc and ask "what's
+  missing". Accepts the design doc as pasted text, a local file, or an
+  external link (Notion, Google Doc, or generic URL).
 compatibility: >-
   Uses references/checklist.md, the bundled canonical checklist derived from
-  design-review-process.md. For link input, uses notion-fetch for Notion URLs
-  or WebFetch for other URLs.
+  references/design-review-process.md. For link input, uses notion-fetch for
+  Notion URLs or WebFetch for other URLs.
 metadata:
   author: mario
   version: "1.0"
@@ -28,7 +28,7 @@ Grade a design doc against a canonical 24-item Design Doc Review Checklist and h
 
 ## The rule
 
-The checklist in [references/checklist.md](references/checklist.md) is the canonical rubric — **never reword, reorder, drop, or add rows to it during a review.** Your only job is to append two columns of assessment. If the underlying `design-review-process.md` changes and the checklist needs to follow, that's a separate, deliberate task: edit `references/checklist.md` directly, the same way you'd edit any other canonical document — don't silently regenerate it mid-review.
+The checklist in [references/checklist.md](references/checklist.md) is the canonical rubric — **never reword, reorder, drop, or add rows to it during a review.** Your only job is to append two columns of assessment. If the underlying [references/design-review-process.md](references/design-review-process.md) changes and the checklist needs to follow, that's a separate, deliberate task: edit `references/checklist.md` directly, the same way you'd edit any other canonical document — don't silently regenerate it mid-review.
 
 ---
 
@@ -90,7 +90,7 @@ Print the full table — never truncate to "top issues only" unless the user exp
 
 ## Gotchas
 
-- **`references/checklist.md` is the canonical checklist**, derived once from `design-review-process.md` — there's no live sync between the two at review time. If the process doc changes, update the checklist deliberately as its own edit.
+- **`references/checklist.md` is the canonical checklist**, derived once from [references/design-review-process.md](references/design-review-process.md) — there's no live sync between the two at review time. If the process doc changes, update the checklist deliberately as its own edit.
 - **Don't invent evidence.** If a section of the design doc is genuinely ambiguous on a given criterion, mark it `⚠️ Partial` and say what's ambiguous — don't force a `Met` or `Not Met` verdict you can't back with a quote.
 - **`N/A` is an escape hatch, not a shortcut** — but rows 8–10 and 16–23 are the deliberate exception, since a document can rarely prove its own review process happened. Don't extend that same generosity to rows 1–7, 11–15, or 24, which are about content the doc should actually contain.
 - **Long design docs**: still evaluate all 24 rows — don't skip rows because the doc is dense or the relevant section is buried in an appendix.
