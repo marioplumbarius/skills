@@ -2,15 +2,16 @@
 name: mario-pump-to-obsidian
 description: >-
   Capture context from the current Claude session (Claude Code, cowork, or
-  chat) and push it as a new note into Mario's Obsidian vault on GitHub
-  (marioplumbarius/obsidian). Use when the user says "pump to obsidian", "save
-  this to my vault/obsidian", "send this session to my notes", or otherwise
-  wants the takeaways, decisions, code, and open questions from the current
-  session preserved in their Obsidian vault. Always shows a plan for approval
+  chat) — or from a YouTube video, transcribed via yt-dlp — and push it as a
+  new note into Mario's Obsidian vault on GitHub (marioplumbarius/obsidian).
+  Use when the user says "pump to obsidian", "save this to my vault/obsidian",
+  "send this session to my notes", "pump this video to obsidian", or pastes a
+  YouTube URL wanting it captured as a note. Always shows a plan for approval
   before opening a PR, then auto-merges once approved.
 compatibility: >-
   Requires git, GitHub CLI (gh), and access to the GitHub MCP. Targets the
-  marioplumbarius/obsidian repository; not suitable for other vaults.
+  marioplumbarius/obsidian repository; not suitable for other vaults. YouTube
+  sources additionally require yt-dlp installed and on PATH.
 metadata:
   author: mario
   version: "1.0"
@@ -37,6 +38,15 @@ meeting its condition.
 
 ## Phase 1 — Gather context
 
+First determine the **source type** for this run:
+
+- **Session** (default) — the current Claude session (Claude Code, cowork, or
+  chat).
+- **YouTube video** — triggered when the user gives a YouTube URL (or asks to
+  "pump this video"). Requires a transcript; see below.
+
+### Source: Session
+
 Pull from **this session's** conversation and tool history. Do not invent
 content — only capture what actually happened or was discussed. Default scope:
 
@@ -50,6 +60,41 @@ Skip the full verbatim transcript unless the user explicitly asks for it.
 
 If the session is long or covers several topics, ask the user whether to scope
 the note to a specific topic before drafting.
+
+### Source: YouTube video
+
+Transcription is **mandatory** — this source type only works if a real
+transcript can be pulled from the video. Never fabricate or summarize from the
+title/description alone.
+
+1. **Fetch metadata** (title, channel, upload date, video URL) with:
+   ```
+   yt-dlp --skip-download --print "%(title)s|||%(uploader)s|||%(upload_date)s|||%(webpage_url)s" <url>
+   ```
+2. **Fetch the transcript** by downloading subtitles, preferring manual
+   captions and falling back to auto-generated ones:
+   ```
+   yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en \
+     --sub-format vtt --convert-subs srt -o "<scratch-dir>/%(id)s" <url>
+   ```
+   Run this in a scratch/temp directory, not the vault checkout.
+3. **Check yt-dlp actually produced a subtitle file.** If none exists (no
+   captions in any language, private/unavailable video, yt-dlp not installed),
+   **stop and tell the user** — do not proceed with a note that has no
+   transcript. Offer to retry with a different `--sub-lang` if the video has
+   non-English captions only.
+4. **Clean the transcript**: strip VTT/SRT timestamps, cue numbers, and
+   duplicate overlapping lines, but keep the spoken content verbatim (don't
+   paraphrase away detail — paraphrasing happens in the Summary section, not
+   here).
+5. Use the cleaned transcript as the source material for the same
+   **Decisions & insights** / **Open questions / TODOs** extraction described
+   above, plus a dedicated **Transcript** section (see template below). Treat
+   "Code & commands" as optional for video sources — only include it if the
+   video actually shows commands/code worth keeping.
+
+If the session is long or the video covers several topics, ask the user
+whether to scope the note to a specific segment before drafting.
 
 ## Phase 2 — Draft note + present plan
 
@@ -70,17 +115,22 @@ Use this note template:
 ---
 title: <human-readable title>
 date: <YYYY-MM-DD>
-source: <claude-code | cowork | chat>
+source: <URL of the source, e.g. the YouTube video URL — leave empty if there is no URL>
 tags: [from-claude, <topic-tags>]
 ---
 
 # <title>
 
 ## Summary
-<2–4 sentence distillation of what this session was about.>
+<2–4 sentence distillation of what this session/video was about.>
 
 ## Decisions & insights
 - <decision/insight + brief why>
+
+## Transcript
+<only when a transcript was captured (source: youtube) — cleaned,
+timestamp-free transcript text, or a scoped excerpt if the user chose to
+limit to a segment>
 
 ## Code & commands
 ```<lang>
@@ -92,10 +142,16 @@ tags: [from-claude, <topic-tags>]
 
 ## References
 - <links, file paths, PRs, or [[wikilinks]] to related notes>
+- <for a video source — also include the channel and upload date (the URL
+  already lives in the `source` frontmatter field, no need to repeat it here)>
 ```
 
 Drop any section that has no real content — don't ship empty headers. Prefer
 Obsidian `[[wikilinks]]` for references to other vault notes when you know them.
+For a YouTube source, `title` defaults to the video's title unless the user
+prefers something else, and the slug for the filename is derived from that
+title. The `source` field is the video's URL; for a plain session capture with
+no underlying URL, leave `source` empty.
 
 **GATE:** Present the plan and wait for explicit approval. If the user requests
 changes, revise and re-present. Do not proceed to Phase 3 until they approve.
@@ -143,6 +199,11 @@ Once the PR is open (approval was already granted in Phase 2):
   conclusion that wasn't reached.
 - **One note per run** by default. If the user wants the content split or
   appended to an existing note, confirm the approach in Phase 2.
+- **No transcript, no note.** For YouTube sources, a real transcript from
+  yt-dlp is required — if captions aren't available, stop and report rather
+  than drafting a note from the title/description alone.
+- **Clean up scratch files.** Delete any subtitle files yt-dlp wrote to the
+  scratch directory once the transcript has been captured into the note.
 - **Approval is for the content.** The Phase 2 gate approves what gets written
   and where; that approval is what authorizes the auto-merge in Phase 4. Any
   change to scope or destination after approval needs re-confirmation.
