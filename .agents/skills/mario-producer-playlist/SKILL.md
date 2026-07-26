@@ -1,137 +1,123 @@
 ---
 name: mario-producer-playlist
 description: >-
-  Build a YouTube Music playlist made entirely of songs produced by one or
-  more named producers (e.g. Pharrell, Timbaland, Metro Boomin, Kanye West).
-  Use this when the user asks to make a playlist "produced by X", wants a
-  crate-dig of a producer's beats/catalog, or wants to combine several
-  producers into one YouTube Music playlist — even if they only name the
-  producer(s) and say "make me a playlist" without spelling out the pipeline.
-  Confirms the exact track list with the user before writing anything to
-  their YouTube account, since playlist creation is a real, hard-to-reverse
-  write.
+  Build a YouTube Music playlist made entirely of songs released by one or
+  more named producers (e.g. Pharrell, Timbaland, Swizz Beatz). Use this
+  when the user asks to make a playlist "produced by X", wants a crate-dig
+  of a producer's catalog, or wants to combine several producers into one
+  YouTube Music playlist — even if they only name the producer(s) and say
+  "make me a playlist" without spelling out the pipeline. Resolves each
+  name to a specific YouTube channel (disambiguating common names or
+  imposters by subscriber count), then confirms the exact track list with
+  the user before writing anything to their YouTube account, since
+  playlist creation is a real, hard-to-reverse write.
 compatibility: >-
-  Requires a Genius API client access token and a Google Cloud OAuth client
-  authorized for the YouTube Data API v3 (scope: youtube). See
-  references/credentials-setup.md. Uses scripts/build_playlist.py.
+  Requires a Google Cloud OAuth client authorized for the YouTube Data API
+  v3 (scope: youtube). See references/credentials-setup.md. Uses
+  scripts/build_playlist.py. No external credit database is used — YouTube
+  itself is the only source of truth.
 metadata:
   author: mario
-  version: "1.0"
+  version: "2.0"
   category: music
 ---
 
 # Producer Playlist Builder
 
-Turn a list of producers into a real YouTube Music playlist of songs they produced. The hard part isn't the API calls — it's that **YouTube has no concept of "producer."** Producer credit has to come from somewhere else (Genius), and then each credited song has to be found and ranked on YouTube. Treat this as a two-source pipeline, not a single search.
+Turn a list of producers into a real YouTube Music playlist of songs they released. YouTube has no "producer" field, so "produced by X" is treated as **"released under X's own YouTube artist identity"** — this is a deliberate scope narrowing, not an oversight (an earlier version of this skill cross-checked production *credits* via Genius; that dependency was dropped in favor of a YouTube-only pipeline, so a producer's own catalog — not beats they made for other artists — is what gets pulled). Say this plainly if the user seems to expect true production-credit verification.
 
----
-
-## Why this is two systems, not one
-
-- **Genius** is the credit source. Its song data includes a `producer_artists` field, which is the actual ground truth for "who produced this." Use it to build the *candidate pool* per producer.
-- **YouTube Data API v3** is the destination and the popularity signal. It has no idea who produced anything — its job is to find the matching video for each Genius-credited song, rank candidates by view count, and create the playlist.
-
-Never try to shortcut this by just searching YouTube for the producer's name — that returns videos *about* or *featuring* the producer, not songs they produced, and it's exactly the kind of noisy shortcut this skill exists to avoid.
+The real work is **disambiguation**: a producer's name is ambiguous (VEVO channels, fan pages, imposters, unrelated people with the same name), and picking the wrong channel silently produces a whole playlist of the wrong thing.
 
 ---
 
 ## Step 1: Gather inputs
 
-Ask for (or infer from the request), and don't guess if any of these are genuinely unclear:
-
 - **Producers** — one or more names. Required.
 - **Tracks per producer** — default **10**.
-- **Time window** — default **last 7 days**, filtered by each song's release date. Alternative: `all-time` (no release-date filter). See the Gotchas section for what this default actually means in practice — it is a release-date filter, not a "views gained this week" metric, because YouTube's public API doesn't expose the latter.
-- **Region** — default **global** (no country bias). Alternative: an ISO country code (e.g. `US`, `BR`, `GB`) to bias YouTube search relevance toward that market.
+- **Sort** — `recent` (default, newest release first) or `popular` (highest view count first). This is a real input, not a preset — ask if it's unclear which the user wants.
 
-Time window and region are **independent filters** — a user can ask for "all-time, but popular in Brazil" or "last 7 days, globally." Don't collapse them into one combined preset.
+Don't guess if any of these are genuinely unclear.
 
 ---
 
 ## Step 2: Check credentials
 
-Before doing anything else, verify both credentials exist:
-
-- `GENIUS_ACCESS_TOKEN` environment variable
-- A YouTube OAuth client (client secrets file + a way to complete the consent screen once)
-
-If either is missing, stop and walk the user through `references/credentials-setup.md` rather than assuming they have it configured. Don't attempt API calls with placeholder or guessed credentials.
+Verify `YOUTUBE_CLIENT_SECRETS` (a Google Cloud OAuth client JSON path) is set before doing anything else. If missing, walk the user through `references/credentials-setup.md` rather than guessing a path.
 
 ---
 
-## Step 3: Resolve each producer to a Genius artist
-
-Run:
+## Step 3: One-time browser authorization
 
 ```bash
-python scripts/build_playlist.py resolve --producer "<name>"
+python scripts/build_playlist.py auth
 ```
 
-This searches Genius for the name and returns candidate artist matches. **If more than one plausible candidate comes back (common names, or a producer who's also a performing artist under a similar handle), show the candidates to the user and ask which one is correct.** Never silently pick the first result — a wrong artist ID silently produces a whole playlist of the wrong person's work, which is a much worse failure than pausing to ask.
+This pops a real browser tab for the user to approve access — it is **not** a manual copy-paste flow, and shouldn't be turned into one. (An earlier iteration of this script tried a manual code-paste workaround when the automatic flow seemed to be failing; the actual root cause was binding the local callback server to the ambiguous hostname `localhost`, which resolves to IPv6 `::1` before IPv4 `127.0.0.1` on many machines. Binding explicitly to `127.0.0.1` fixed it. If the browser flow ever seems broken again, look there before reaching for a workaround.)
+
+This only has to happen once per machine — the resulting refresh token is cached (default `~/.cache/mario-producer-playlist/youtube_token.json`) and reused silently by every later command, including automatic token refresh on expiry. Skip this step if a valid cached token already exists.
+
+If nothing comes back within `--consent-timeout` (default 120s), the script says so explicitly and stops — don't spin up a workaround, just tell the user the consent link may have been missed and offer to rerun.
 
 ---
 
-## Step 4: Pull and confirm the candidate pool
+## Step 4: Resolve each producer to a YouTube channel
 
-Run:
+The `plan` command (Step 5) does this internally for every producer at once, but the disambiguation logic is worth understanding, since it's the crux of the whole skill:
+
+1. Search YouTube for channels matching the name.
+2. **Keep only channels YouTube itself tags with a Music-related topic category** (`topicDetails.topicCategories`) — this drops unrelated same-name channels (sports, gaming, whatever) before comparing anything else.
+3. **Among the survivors, the one with the most subscribers wins.** That's the whole rule — no description text, no fuzzy scoring. YouTube's public API has no "official artist channel" flag exposed to third-party consumers (verified this directly against live API responses — don't assume such a field exists), so subscriber count is the deliberately simple stand-in the user chose after that was surfaced.
+4. **Look for that artist's paired auto-generated `"<Name> - Topic"` channel** — YouTube builds this automatically from official release metadata, containing only music (no interviews, vlogs, behind-the-scenes). Prefer pulling tracks from it. Two things to watch for here, both found via live testing:
+   - The Topic channel's title sometimes uses a shortened stage name (`"Pharrell - Topic"` for `"Pharrell Williams"`) — don't match on exact name equality, match on the `"- Topic"` suffix + Music tagging.
+   - Impostor/copycat channels can squat on a `"<Name> - Topic"`-shaped title with near-zero subscribers and no real Music tag — when more than one candidate matches the suffix, rank by subscriber count among the ones actually tagged Music, don't just take the first hit.
+   - If no Topic channel is found at all, fall back to the main channel's own uploads.
+
+---
+
+## Step 5: Build the plan (no writes yet)
 
 ```bash
 python scripts/build_playlist.py plan \
-  --producer-id <id> --producer-name "<confirmed name>" \
-  [--producer-id <id> --producer-name "<confirmed name>" ...] \
-  --count 10 \
-  --time-window last-7-days|all-time \
-  --region global|<ISO-country-code>
+  --producer "<name>" [--producer "<name>" ...] \
+  --count 10 --sort recent|popular \
+  --out plan.json
 ```
 
-`--producer-id` and `--producer-name` are paired positionally — pass one of each per producer, in the same order, using the artist confirmed in Step 3.
+For each producer this returns: resolved channel (name + clickable URL + subscriber count), track source channel (name + clickable URL), how many tracks were actually found, the most recent release date **and** how many days ago that was, and the full track list (each with its own clickable `music.youtube.com` URL, title, publish date, view count).
 
-This does the real work, per producer:
+The days-ago figure matters: it tells you whether "top N" is actually meaningful for a given producer or whether the pipeline is scraping the bottom of a mostly-dormant catalog (a producer whose newest pick is 3+ years old is a very different result than one with fresh material). Surface it plainly — don't bury it in a details.
 
-1. Searches Genius broadly for the producer's name, then confirms each candidate song's `producer_artists` field actually includes them — Genius's API has no direct "songs by producer" endpoint, so this search-then-confirm step is unavoidable. Don't accept a Genius search hit without this confirmation step; a raw search result frequently just *mentions* the producer.
-2. Applies the time-window filter against each song's Genius release date, if set.
-3. Searches the YouTube Data API for each confirmed song (`"<artist> - <title>"`, restricted to music) and takes the best match.
-4. Ranks matched videos by `statistics.viewCount`, applying the region bias to the search relevance if a country was given.
-5. Keeps the top N per producer.
-
-The script prints a **plan**: every selected track (producer → title → matched YouTube video → view count), plus a separate list of anything it had to skip (no Genius credit confirmation, or no YouTube match found) with the reason. Read this whole plan yourself before showing it to the user — don't just relay the raw script output if it's long; summarize the picks and call out every skip.
+Present this to the user as a readable table (producer, resolved channel with link, subs, track source with link, tracks found, most recent release + days ago), not a raw JSON dump.
 
 ---
 
-## Step 5: Confirm before writing anything
+## Step 6: Confirm before writing anything
 
-**Always show the user the resolved plan and ask them to confirm before creating the playlist.** This is a real write to their YouTube account — creating a playlist and adding videos to it — and it's not something to reverse casually. Show:
-
-- The producer list as resolved (in case any name matched an unexpected artist)
-- The final track list per producer, with the filters applied (time window, region)
-- Anything skipped and why
-
-Only proceed to Step 6 after explicit confirmation. If the user wants changes (swap a track, drop a producer, widen the time window), rerun Step 4 with the adjustment rather than hand-editing the plan yourself.
+**Always show the resolved plan and get explicit approval before creating the playlist.** This is a real write to the user's YouTube account and not something to reverse casually. If the user doesn't approve — wants a different sort, different producers, different count — go back to Step 5 with the adjustment and show the new plan. Don't hand-edit the plan file yourself and don't proceed on a partial or ambiguous "sounds fine."
 
 ---
 
-## Step 6: Create the playlist
-
-Run:
+## Step 7: Create the playlist
 
 ```bash
-python scripts/build_playlist.py execute --plan-file <path-to-plan-from-step-4>
+python scripts/build_playlist.py execute --plan-file plan.json --privacy private
 ```
 
-This creates a real playlist on the authenticated YouTube account and adds every confirmed track to it. Report back the playlist link in the form:
+Report the result as:
 
 ```
 https://music.youtube.com/playlist?list=<PLAYLIST_ID>
 ```
 
-That's the format the user can click to open directly in YouTube Music. Don't hand back the plain `youtube.com/playlist` link — swap the host, since the ask is specifically to open it in their YouTube Music client.
+That's the format that opens directly in the user's YouTube Music client — always swap the host from the plain `youtube.com` API response, never hand back that form.
 
 ---
 
 ## Gotchas
 
-- **"Top" isn't a native YouTube metric over a time window.** The public YouTube Data API only exposes lifetime view counts (`statistics.viewCount`) and a region-locked *current* trending chart — there's no API for "views gained in the last 7 days" on an arbitrary video. The `last-7-days` default is implemented as a **release-date filter**, then ranks the survivors by lifetime views. Say this plainly to the user if they seem to expect a true rolling-popularity metric — don't let them believe it's measuring something the API can't actually measure.
-- **Region is a relevance bias, not a hard filter.** YouTube's `regionCode` parameter nudges search relevance toward that locale; it doesn't restrict results to videos popular *only* in that country. Set expectations accordingly.
-- **Genius credit ≠ guaranteed YouTube match.** Some Genius-credited songs won't have a clean YouTube Music match (unreleased, region-locked, or removed). Skip and report these — never quietly drop a producer down to fewer tracks without saying so.
-- **Ambiguous producer names are common** (there are multiple "Boi-1da"-adjacent handles, producers who share names with performing artists, etc.) — always surface candidates rather than guessing, per Step 3.
-- **This is a real account write.** Once Step 6 runs, the playlist exists on the user's account. Don't run Step 6 speculatively "to see what happens" — only after the user has seen and confirmed the Step 4/5 plan.
+- **Every network call has a hard timeout (default 5s, `--timeout` to adjust).** On a timeout, the script stops and prints a clear message instead of retrying or degrading silently — treat that as a real stop, tell the user what happened, and ask how to proceed rather than looping or raising the timeout unilaterally.
+- **"Produced by X" here really means "released by X's own YouTube identity,"** not a verified production credit. Say this out loud if the user's phrasing suggests they expect the latter.
+- **No "official artist channel" API flag exists.** Subscriber count among Music-tagged channels is the deliberately simple disambiguation rule — don't reintroduce description-text heuristics or other fuzzy scoring without the user asking for it again; that tradeoff was made explicitly.
+- **`localhost` vs `127.0.0.1` in the auth flow is not cosmetic.** If browser consent ever seems to hang or fail near-instantly, check that the callback server and redirect URI are both using `127.0.0.1` explicitly — this was a real, previously-diagnosed failure mode, not a hypothetical one.
+- **A producer's catalog can be stale.** Always surface `most_recent_release_days_ago` so the user can judge whether the results are meaningful before approving.
+- **This is a real account write.** Don't run `execute` speculatively — only after the user has seen and approved the Step 5 plan.

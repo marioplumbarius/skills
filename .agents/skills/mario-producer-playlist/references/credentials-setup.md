@@ -1,6 +1,6 @@
 # Credentials setup
 
-Two separate credentials are required. Neither should be assumed present — check for both before running any pipeline step.
+Only one credential is required: a YouTube Data API v3 OAuth client. (An earlier version of this skill also used a Genius API token for producer-credit verification; that dependency was dropped in favor of a YouTube-only pipeline.)
 
 ## 0. Python dependencies
 
@@ -8,41 +8,38 @@ Two separate credentials are required. Neither should be assumed present — che
 pip install -r scripts/requirements.txt
 ```
 
-## 1. Genius API access token
+## 1. YouTube Data API v3 OAuth client
 
-1. Go to https://genius.com/api-clients and sign in (or create a Genius account).
-2. Click "New API Client", fill in any app name/URL (this is for read-only credit lookups, not a public-facing app).
-3. Generate a **Client Access Token** from the client's page — this is the token needed, not the client ID/secret.
-4. Export it:
-   ```bash
-   export GENIUS_ACCESS_TOKEN="<token>"
-   ```
-
-This token is read-only and has no write scope — it can't modify anything on Genius.
-
-## 2. YouTube Data API v3 OAuth client
-
-Creating and modifying playlists on a specific user's account requires OAuth (an API key alone only allows read-only calls).
+Reading public data (search, channel/video lookups) is possible with a plain API key, but **creating a playlist writes to a specific user's own account**, which Google's platform requires real OAuth user consent for — there's no API-key-only or client-secret-only path around this. It only needs to happen once per machine.
 
 1. In the [Google Cloud Console](https://console.cloud.google.com/), create or select a project.
 2. Enable the **YouTube Data API v3** for that project (APIs & Services → Library).
-3. Under APIs & Services → Credentials, create an **OAuth client ID** of type "Desktop app".
-4. Download the resulting JSON as `client_secret.json` and note its path.
-5. Export the path:
+3. Under APIs & Services → Credentials, create an **OAuth client ID** of type "Desktop app". Download the JSON.
+4. If the OAuth consent screen is in "Testing" publishing status (the common case for a personal project), add the account you'll authorize with under **Audience → Test users** (this section moved out of the old "OAuth consent screen" page in Google's newer Auth Platform UI — look under **Audience**, not "Verification Center").
+5. Export the downloaded JSON's path:
    ```bash
    export YOUTUBE_CLIENT_SECRETS="/path/to/client_secret.json"
    ```
-6. The first time `scripts/build_playlist.py execute` runs, it opens a browser consent screen for the `https://www.googleapis.com/auth/youtube` scope. Approve it once — the resulting token is cached locally (see `--token-cache` in the script, defaults to `~/.cache/mario-producer-playlist/youtube_token.json`) so future runs don't re-prompt.
 
-**This OAuth client only needs to be set up once per machine/account.** If the user already has a `client_secret.json` and cached token from a prior run, reuse them — don't walk through this setup again unless the token has expired or been revoked.
+## 2. Run the one-time browser auth
+
+```bash
+python scripts/build_playlist.py auth
+```
+
+This opens a real browser tab for the user to approve access, then caches the resulting refresh token (default `~/.cache/mario-producer-playlist/youtube_token.json`). Every later command reuses it silently — no more browser steps, and expired access tokens are refreshed automatically.
+
+**If this hangs or fails almost instantly:** the root cause we diagnosed once already is `localhost` resolving to IPv6 `::1` before IPv4 `127.0.0.1` — a browser navigating to `http://localhost:<port>/` can end up trying an address nothing is actually listening on. `build_playlist.py auth` already binds explicitly to `127.0.0.1` for both the callback server and the redirect URI to avoid this; if it ever recurs, verify with:
+```bash
+python3 -c "import socket; print(socket.getaddrinfo('localhost', 0))"
+```
+and confirm the auth flow is still binding to `127.0.0.1`, not `localhost`, before reaching for a workaround (e.g. a manual copy-paste flow) — that's treating a symptom, not the cause.
+
+**This OAuth client and its cached token only need to be set up once.** If a valid token is already cached, skip straight to using `resolve` / `plan` / `execute`.
 
 ## Verifying before use
 
-Before running Step 3 onward, confirm both are present:
-
 ```bash
-test -n "$GENIUS_ACCESS_TOKEN" && echo "Genius token OK" || echo "Missing GENIUS_ACCESS_TOKEN"
-test -f "$YOUTUBE_CLIENT_SECRETS" && echo "YouTube client secrets OK" || echo "Missing YOUTUBE_CLIENT_SECRETS"
+test -n "$YOUTUBE_CLIENT_SECRETS" && test -f "$YOUTUBE_CLIENT_SECRETS" && echo "YouTube client secrets OK" || echo "Missing YOUTUBE_CLIENT_SECRETS"
+test -f ~/.cache/mario-producer-playlist/youtube_token.json && echo "Cached token found (auth already done)" || echo "No cached token — run 'auth' first"
 ```
-
-If either is missing, stop and walk the user through the relevant section above rather than guessing a path or proceeding without it.
