@@ -2,8 +2,8 @@
   "name": "skills",
   "description": "Mario's personal collection of agent skills built on expertise, prescriptive instructions, and clear patterns.",
   "author": { "name": "Mario Souza" },
-  "homepage": "https://github.com/marioplumbarius/skills",
-  "repository": "https://github.com/marioplumbarius/skills",
+  "homepage": "https://github.com/marioplumbeer/skills",
+  "repository": "https://github.com/marioplumbeer/skills",
   "license": "MIT",
   "skillsDirectory": ".agents/skills"
 }

@@ -3,14 +3,14 @@ name: mario-pump-to-obsidian
 description: >-
   Capture context from a source — the current Claude session (Claude Code,
   cowork, or chat), or a YouTube video transcribed via yt-dlp — and push it as
-  a new note into Mario's Obsidian vault on GitHub (marioplumbarius/obsidian).
+  a new note into Mario's Obsidian vault on GitHub (marioplumbeer/obsidian).
   Use when the user says "pump to obsidian", "save this to my vault/obsidian",
   "send this session to my notes", "pump this video to obsidian", or pastes a
   YouTube URL wanting it captured as a note. Always shows a plan for approval
   before opening a PR, then auto-merges once approved.
 compatibility: >-
   Requires git, GitHub CLI (gh), and access to the GitHub MCP. Targets the
-  marioplumbarius/obsidian repository; not suitable for other vaults. YouTube
+  marioplumbeer/obsidian repository; not suitable for other vaults. YouTube
   sources additionally require yt-dlp installed and on PATH.
 metadata:
   author: mario
@@ -23,7 +23,7 @@ metadata:
 Distill a source into a clean Obsidian note and land it in the vault via a
 pull request. Plan first, get approval, open the PR, auto-merge.
 
-**Default target repo:** `marioplumbarius/obsidian`
+**Default target repo:** `marioplumbeer/obsidian`
 
 Work through the phases in order. Do not skip a phase or pass a gate without
 meeting its condition.
@@ -57,7 +57,7 @@ Using the destination rule and template from the source's reference file,
 build the note in memory, then show the user a **plan** before touching the
 repo. The plan must state:
 
-1. **Target**: repo (`marioplumbarius/obsidian`), branch name, and file path.
+1. **Target**: repo (`marioplumbeer/obsidian`), branch name, and file path.
 2. **Filename**: per the source reference file's Destination section.
 3. **Preview**: the full note content (frontmatter + body) so the user sees
    exactly what lands in the vault.
@@ -71,7 +71,7 @@ changes, revise and re-present. Do not proceed to Phase 3 until they approve.
 
 ## Phase 3 — Open PR
 
-Operate on `marioplumbarius/obsidian` using the GitHub MCP tools (`mcp__github__*`).
+Operate on `marioplumbeer/obsidian` using the GitHub MCP tools (`mcp__github__*`).
 If those tools are not scoped to the vault repo in this session, tell the user
 and stop — do not silently fall back to a different repo.
 
@@ -106,7 +106,7 @@ These apply regardless of source. Source-specific gotchas (transcript
 handling, citation rules, etc.) live in that source's reference file.
 
 - **Vault, not code repo.** The target is the Obsidian vault
-  (`marioplumbarius/obsidian`), never the repo of the current coding session.
+  (`marioplumbeer/obsidian`), never the repo of the current coding session.
   Confirm the GitHub tools point at the vault before writing.
 - **No secrets.** Strip API keys, tokens, passwords, and private credentials
   from code/command snippets before they go into the note.
