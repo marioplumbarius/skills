@@ -97,13 +97,26 @@ Present the plan as a readable table (producer, Genius artist name + link, track
 
 **Always show the resolved plan and get explicit approval before creating the playlist.** This is a real write to the user's YouTube account. If not approved — different sort, different producers, different count — go back to Step 5 with the adjustment. Don't hand-edit the plan file yourself.
 
+**Also ask two more things before proceeding, every time — don't default silently:**
+
+1. **New playlist, or an existing one?** Run `python scripts/build_playlist.py list-playlists` and show the user their existing playlists (title + track count) as options, alongside "create new." This exists specifically so repeated runs don't quietly accumulate a pile of near-duplicate playlists.
+2. **If new: what should it be called?** Offer the auto-generated default (`Produced by <producers>`) but let the user override it.
+3. **If existing: merge or replace?** `merge` adds this run's tracks on top of what's already there; `replace` clears the existing playlist first. Get an explicit choice — don't assume either one, since replace is destructive to whatever was already in that playlist.
+
 ---
 
-## Step 7: Create the playlist
+## Step 7: Create or update the playlist
 
 ```bash
-python scripts/build_playlist.py execute --plan-file plan.json --privacy private
+# New playlist
+python scripts/build_playlist.py execute --plan-file plan.json --mode create --title "<name>" --privacy private
+
+# Existing playlist
+python scripts/build_playlist.py execute --plan-file plan.json --mode replace --playlist-id <id>
+python scripts/build_playlist.py execute --plan-file plan.json --mode merge   --playlist-id <id>
 ```
+
+`--playlist-id` is required for `replace`/`merge` — get it from `list-playlists`, never guess or construct one. `replace` deletes every existing item in that playlist before adding the plan's tracks; treat that step with the same care as any other destructive write, since it's not reversible from here.
 
 Report the result as `https://music.youtube.com/playlist?list=<PLAYLIST_ID>` — always swap the host from the plain `youtube.com` form the API returns, since the ask is specifically to open it in YouTube Music.
 
@@ -116,3 +129,4 @@ Report the result as `https://music.youtube.com/playlist?list=<PLAYLIST_ID>` —
 - **Genius's `/artists/{id}/songs` is not producer-specific** — it lists any credited role. The per-song `producer_artists` confirmation step is load-bearing; don't skip it to save a round-trip.
 - **Ambiguous producer names** — always surface Genius candidates rather than guessing.
 - **This is a real account write.** Don't run `execute` speculatively — only after the user has seen and approved the Step 5 plan.
+- **`--mode replace` deletes every existing item in the target playlist before adding anything new.** It cannot be undone from within this skill. Never pick `replace` on the user's behalf — always get an explicit merge-vs-replace answer when targeting an existing playlist (Step 6).
