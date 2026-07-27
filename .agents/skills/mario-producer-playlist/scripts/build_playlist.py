@@ -455,17 +455,21 @@ def build_producer_plan(name, count, sort, args, token_info, access_token):
             log(f"  [{name}] ({i}/{len(credited_songs)}) Using Genius-linked video {genius_video_id} for "
                 f"\"{song['title']}\" (cheap lookup, no search needed)...")
             match, failure_reason = youtube_video_by_id(access_token, genius_video_id, args, token_info)
-            if not match:
+            if not match and args.youtube_search_fallback:
                 log(f"  [{name}] ({i}/{len(credited_songs)}) Genius-linked video lookup failed "
                     f"({failure_reason}) — falling back to YouTube search...")
                 match, failure_reason = best_youtube_match(
                     access_token, song["primary_artist"], song["title"], args, token_info
                 )
-        else:
+        elif args.youtube_search_fallback:
             log(f"  [{name}] ({i}/{len(credited_songs)}) No Genius-linked video — searching YouTube for "
                 f"\"{song['title']}\" by {song['primary_artist']}...")
             match, failure_reason = best_youtube_match(
                 access_token, song["primary_artist"], song["title"], args, token_info
+            )
+        else:
+            match, failure_reason = None, (
+                "no Genius-linked YouTube video, and --youtube-search-fallback is off (default)"
             )
 
         if match:
@@ -616,6 +620,16 @@ def main():
     p_plan.add_argument("--count", type=int, default=3)
     p_plan.add_argument("--sort", choices=["recent", "popular"], default="recent")
     p_plan.add_argument("--out", default="plan.json")
+    p_plan.add_argument(
+        "--youtube-search-fallback",
+        action="store_true",
+        default=False,
+        help=(
+            "Fall back to a YouTube search.list call (100 quota units) when a song has no "
+            "Genius-provided video link. Off by default — a song without one is simply skipped "
+            "instead of spending search quota on it."
+        ),
+    )
     add_common_args(p_plan)
     p_plan.set_defaults(func=cmd_plan)
 
