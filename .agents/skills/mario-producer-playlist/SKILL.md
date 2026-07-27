@@ -34,7 +34,7 @@ This design was reached the hard way: an earlier iteration tried resolving produ
 ## Step 1: Gather inputs
 
 - **Producers** — one or more names. Required.
-- **Tracks per producer** — default **10**.
+- **Tracks per producer** — default **3**. Kept deliberately small: each confirmed credit costs a YouTube `search.list` call, and the free daily quota is only 100 of those (see Gotchas) — a low default keeps a `plan` run affordable, especially across multiple producers.
 - **Sort** — `recent` (default, newest release first) or `popular` (highest YouTube view count first). Real input, not a preset.
 
 Don't guess if any of these are genuinely unclear.
@@ -72,7 +72,7 @@ Genius has no direct "look up this artist" endpoint, so this searches broadly an
 ```bash
 python scripts/build_playlist.py plan \
   --producer "<name>" [--producer "<name>" ...] \
-  --count 10 --sort recent|popular \
+  --count 3 --sort recent|popular \
   --out plan.json
 ```
 

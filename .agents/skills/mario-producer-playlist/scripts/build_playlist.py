@@ -545,7 +545,7 @@ def main():
 
     p_plan = sub.add_parser("plan", help="Resolve producers and build the credited-track plan (no writes)")
     p_plan.add_argument("--producer", action="append", required=True)
-    p_plan.add_argument("--count", type=int, default=10)
+    p_plan.add_argument("--count", type=int, default=3)
     p_plan.add_argument("--sort", choices=["recent", "popular"], default="recent")
     p_plan.add_argument("--out", default="plan.json")
     add_common_args(p_plan)
