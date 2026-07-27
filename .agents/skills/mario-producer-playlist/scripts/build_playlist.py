@@ -21,6 +21,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.parse
 from datetime import datetime, timezone
 
 import requests
@@ -223,6 +224,25 @@ def song_credits_producer(song_id, producer_artist_id, timeout):
     return producer_artist_id in producer_ids, song
 
 
+def extract_youtube_video_id(media):
+    """Genius song detail responses often already include a direct YouTube
+    link in `media` (verified live across 10 songs from 3 producers: 8/10
+    had one). Using this skips the expensive YouTube search.list call
+    (100 quota units) entirely for those songs — only videos.list (1 unit)
+    is needed afterward to pull stats. Falls back to a real search only
+    when Genius has no such link."""
+    for m in media or []:
+        if m.get("provider") != "youtube" or not m.get("url"):
+            continue
+        parsed = urllib.parse.urlparse(m["url"])
+        qs = urllib.parse.parse_qs(parsed.query)
+        if "v" in qs:
+            return qs["v"][0]
+        if parsed.netloc.endswith("youtu.be"):
+            return parsed.path.lstrip("/")
+    return None
+
+
 GENIUS_SORT_BY_OUR_SORT = {"recent": "release_date", "popular": "popularity"}
 
 
@@ -271,6 +291,7 @@ def find_credited_songs(producer_name, producer_artist_id, want, timeout, sort="
                     "title": song["title"],
                     "primary_artist": song["primary_artist"]["name"],
                     "genius_url": song["url"],
+                    "genius_video_id": extract_youtube_video_id(song.get("media")),
                 }
             )
             log(f"  [{producer_name}] Confirmed credit {len(confirmed)}/{want}: "
@@ -300,6 +321,38 @@ def days_ago(iso_timestamp):
         return None
     published = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
     return (datetime.now(timezone.utc) - published).days
+
+
+def youtube_video_by_id(access_token, video_id, args, token_info):
+    """Look up a specific video ID directly (videos.list, 1 quota unit) —
+    used when Genius already told us which YouTube video this song is,
+    instead of paying for a search.list call (100 units) to go find it."""
+    try:
+        stats = yt_get(
+            "videos",
+            access_token,
+            {"part": "statistics,snippet", "id": video_id},
+            args.timeout,
+            retry_token_info=token_info,
+            args=args,
+        )
+    except requests.exceptions.Timeout:
+        return None, f"YouTube video lookup timed out after {args.timeout}s"
+    except requests.exceptions.RequestException as e:
+        return None, f"YouTube video lookup failed: {e}"
+
+    items = stats.get("items", [])
+    if not items:
+        return None, "Genius-linked video not found on YouTube (removed or region-locked?)"
+    v = items[0]
+    return {
+        "video_id": v["id"],
+        "title": v["snippet"]["title"],
+        "channel_title": v["snippet"]["channelTitle"],
+        "published_at": v["snippet"]["publishedAt"],
+        "view_count": int(v["statistics"].get("viewCount", 0)),
+        "url": video_url(v["id"]),
+    }, None
 
 
 def best_youtube_match(access_token, artist, title, args, token_info):
@@ -397,9 +450,24 @@ def build_producer_plan(name, count, sort, args, token_info, access_token):
     log(f"[{name}] Matching {len(credited_songs)} confirmed credits against YouTube...")
     matched, skipped = [], []
     for i, song in enumerate(credited_songs, start=1):
-        log(f"  [{name}] ({i}/{len(credited_songs)}) Searching YouTube for "
-            f"\"{song['title']}\" by {song['primary_artist']}...")
-        match, failure_reason = best_youtube_match(access_token, song["primary_artist"], song["title"], args, token_info)
+        genius_video_id = song.get("genius_video_id")
+        if genius_video_id:
+            log(f"  [{name}] ({i}/{len(credited_songs)}) Using Genius-linked video {genius_video_id} for "
+                f"\"{song['title']}\" (cheap lookup, no search needed)...")
+            match, failure_reason = youtube_video_by_id(access_token, genius_video_id, args, token_info)
+            if not match:
+                log(f"  [{name}] ({i}/{len(credited_songs)}) Genius-linked video lookup failed "
+                    f"({failure_reason}) — falling back to YouTube search...")
+                match, failure_reason = best_youtube_match(
+                    access_token, song["primary_artist"], song["title"], args, token_info
+                )
+        else:
+            log(f"  [{name}] ({i}/{len(credited_songs)}) No Genius-linked video — searching YouTube for "
+                f"\"{song['title']}\" by {song['primary_artist']}...")
+            match, failure_reason = best_youtube_match(
+                access_token, song["primary_artist"], song["title"], args, token_info
+            )
+
         if match:
             log(f"  [{name}] ({i}/{len(credited_songs)}) OK: matched \"{match['title']}\"")
             matched.append({**song, **match})
