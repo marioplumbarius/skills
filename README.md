@@ -9,7 +9,7 @@ The plugin is available in the Claude Code marketplace.
 **Step 1:** Install from marketplace:
 
 ```bash
-/plugin install marioplumbarius/skills
+/plugin install marioplumbeer/skills
 ```
 
 **Step 2:** Use any skill:
