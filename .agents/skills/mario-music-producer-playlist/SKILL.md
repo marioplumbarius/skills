@@ -1,5 +1,5 @@
 ---
-name: mario-producer-playlist
+name: mario-music-producer-playlist
 description: >-
   Build a YouTube Music playlist made entirely of songs credited to one or
   more named producers (e.g. Pharrell, Timbaland, Swizz Beatz) — including

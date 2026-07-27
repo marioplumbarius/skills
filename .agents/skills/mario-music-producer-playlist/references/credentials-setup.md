@@ -38,7 +38,7 @@ Reading public data (search, channel/video lookups) is possible with a plain API
 python scripts/build_playlist.py auth
 ```
 
-This opens a real browser tab for the user to approve access, then caches the resulting refresh token (default `~/.cache/mario-producer-playlist/youtube_token.json`). Every later command reuses it silently — no more browser steps, and expired access tokens are refreshed automatically.
+This opens a real browser tab for the user to approve access, then caches the resulting refresh token (default `~/.cache/mario-music-producer-playlist/youtube_token.json`). Every later command reuses it silently — no more browser steps, and expired access tokens are refreshed automatically.
 
 **If this hangs or fails almost instantly:** the root cause we diagnosed once already is `localhost` resolving to IPv6 `::1` before IPv4 `127.0.0.1` — a browser navigating to `http://localhost:<port>/` can end up trying an address nothing is actually listening on. `build_playlist.py auth` already binds explicitly to `127.0.0.1` for both the callback server and the redirect URI to avoid this; if it ever recurs, verify with:
 ```bash
@@ -57,5 +57,5 @@ The free daily quota is 10,000 units, and `search.list` costs 100 units per call
 ```bash
 test -n "$GENIUS_ACCESS_TOKEN" && echo "Genius token OK" || echo "Missing GENIUS_ACCESS_TOKEN"
 test -n "$YOUTUBE_CLIENT_SECRETS" && test -f "$YOUTUBE_CLIENT_SECRETS" && echo "YouTube client secrets OK" || echo "Missing YOUTUBE_CLIENT_SECRETS"
-test -f ~/.cache/mario-producer-playlist/youtube_token.json && echo "Cached token found (auth already done)" || echo "No cached token — run 'auth' first"
+test -f ~/.cache/mario-music-producer-playlist/youtube_token.json && echo "Cached token found (auth already done)" || echo "No cached token — run 'auth' first"
 ```
