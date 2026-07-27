@@ -738,7 +738,7 @@ def main():
         help="Required for --mode replace|merge — the existing playlist to target. See list-playlists.",
     )
     p_execute.add_argument("--title", default=None, help="Only used with --mode create.")
-    p_execute.add_argument("--privacy", choices=["private", "unlisted", "public"], default="private")
+    p_execute.add_argument("--privacy", choices=["private", "unlisted", "public"], default="public")
     add_common_args(p_execute)
     p_execute.set_defaults(func=cmd_execute)
 

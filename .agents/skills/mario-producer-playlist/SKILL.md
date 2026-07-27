@@ -109,7 +109,7 @@ Present the plan as a readable table (producer, Genius artist name + link, track
 
 ```bash
 # New playlist
-python scripts/build_playlist.py execute --plan-file plan.json --mode create --title "<name>" --privacy private
+python scripts/build_playlist.py execute --plan-file plan.json --mode create --title "<name>"
 
 # Existing playlist
 python scripts/build_playlist.py execute --plan-file plan.json --mode replace --playlist-id <id>
@@ -117,6 +117,8 @@ python scripts/build_playlist.py execute --plan-file plan.json --mode merge   --
 ```
 
 `--playlist-id` is required for `replace`/`merge` — get it from `list-playlists`, never guess or construct one. `replace` deletes every existing item in that playlist before adding the plan's tracks; treat that step with the same care as any other destructive write, since it's not reversible from here.
+
+**New playlists default to `--privacy public`.** Pass `--privacy private` or `--privacy unlisted` explicitly if the user wants otherwise — don't assume public is always fine without at least a quick check when the content might be sensitive to the user, but don't ask about it every single time either now that it's the established default.
 
 Report the result as `https://music.youtube.com/playlist?list=<PLAYLIST_ID>` — always swap the host from the plain `youtube.com` form the API returns, since the ask is specifically to open it in YouTube Music.
 
