@@ -196,18 +196,28 @@ def genius_get(path, params, timeout):
     return resp.json()["response"]
 
 
+def _normalize_name(s):
+    """Strip everything but letters/digits before comparing artist names.
+    Genius sometimes punctuates a stage name differently than how a user
+    types it (e.g. the producer "No I.D." vs. a user typing "No ID") —
+    without normalizing, a literal substring match misses this entirely
+    and reports zero candidates for a very real, well-known artist."""
+    return "".join(ch for ch in s.lower() if ch.isalnum())
+
+
 def resolve_producer_candidates(name, timeout, limit=5):
     """Search Genius for the name and return plausible artist candidates.
     Genius has no direct "look up this artist" endpoint by name, so this
-    goes through song search and pulls out artists whose name contains the
-    query — deliberately permissive, since ambiguity here should be
-    surfaced to the user rather than silently resolved."""
+    goes through song search and pulls out artists whose (normalized) name
+    contains the query — deliberately permissive, since ambiguity here
+    should be surfaced to the user rather than silently resolved."""
     data = genius_get("/search", {"q": name}, timeout)
+    normalized_query = _normalize_name(name)
     seen = {}
     for hit in data.get("hits", []):
         result = hit["result"]
         for artist in [result["primary_artist"]] + result.get("featured_artists", []):
-            if artist["id"] not in seen and name.lower() in artist["name"].lower():
+            if artist["id"] not in seen and normalized_query in _normalize_name(artist["name"]):
                 seen[artist["id"]] = {"id": artist["id"], "name": artist["name"], "url": artist["url"]}
         if len(seen) >= limit:
             break
