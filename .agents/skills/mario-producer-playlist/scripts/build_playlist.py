@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Build a YouTube Music playlist from songs released by one or more producers,
-using YouTube itself as the only source of truth (no external credit DB).
+Build a YouTube Music playlist from songs credited to one or more producers.
 
-Producer name -> YouTube channel identity is inherently ambiguous (common
-names, fan channels, VEVO channels, etc.), so the core job here is
-disambiguation: search for channels matching the name, keep only the ones
-YouTube itself categorizes as Music, and pick the one with the most
-subscribers. That's it — simple and cheap, no fuzzy scoring beyond that.
+Track discovery is 100% driven by Genius (the only source with a real
+"who produced this" credit — YouTube has no such concept and can only ever
+show a producer's own uploads, missing every track they produced that got
+released under someone else's name). YouTube is used only to find the
+matching video for each Genius-credited song and to rank/present results.
 
 Every network call has a hard timeout (default 5s). A timeout aborts the
 run with a clear message instead of retrying or silently degrading — the
@@ -26,15 +25,28 @@ from datetime import datetime, timezone
 
 import requests
 
-API_BASE = "https://www.googleapis.com/youtube/v3"
+YT_API_BASE = "https://www.googleapis.com/youtube/v3"
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SCOPE = "https://www.googleapis.com/auth/youtube"
 DEFAULT_TOKEN_CACHE = os.path.expanduser("~/.cache/mario-producer-playlist/youtube_token.json")
+
+GENIUS_API_BASE = "https://api.genius.com"
+GENIUS_SEARCH_MAX_PAGES = 5
 
 
 def die(msg):
     sys.exit(msg)
 
+
+def log(msg):
+    """Progress line to stderr, flushed immediately. `plan` can run for a
+    while (Genius search-and-confirm + a YouTube lookup per candidate
+    song) — silence during that time reads as "stuck" even when it's
+    actively working, so every meaningful step reports here."""
+    print(msg, file=sys.stderr, flush=True)
+
+
+# --- YouTube auth / token plumbing ----------------------------------------
 
 def load_client_secrets():
     path = os.environ.get("YOUTUBE_CLIENT_SECRETS")
@@ -88,9 +100,9 @@ def get_access_token(args):
     return token_info
 
 
-def api_get(path, access_token, params, timeout, retry_token_info=None, args=None):
+def yt_get(path, access_token, params, timeout, retry_token_info=None, args=None):
     resp = requests.get(
-        f"{API_BASE}/{path}",
+        f"{YT_API_BASE}/{path}",
         params=params,
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=timeout,
@@ -98,17 +110,18 @@ def api_get(path, access_token, params, timeout, retry_token_info=None, args=Non
     if resp.status_code == 401 and retry_token_info is not None:
         refreshed = refresh_access_token(retry_token_info, timeout)
         save_token(args.token_cache, refreshed)
+        access_token = refreshed["access_token"]
         resp = requests.get(
-            f"{API_BASE}/{path}",
+            f"{YT_API_BASE}/{path}",
             params=params,
-            headers={"Authorization": f"Bearer {refreshed['access_token']}"},
+            headers={"Authorization": f"Bearer {access_token}"},
             timeout=timeout,
         )
     resp.raise_for_status()
     return resp.json()
 
 
-# --- auth ---------------------------------------------------------------
+# --- auth ------------------------------------------------------------------
 #
 # Uses google-auth-oauthlib's InstalledAppFlow to pop a real browser tab and
 # catch the redirect on a local loopback server — NOT a manual copy/paste
@@ -156,33 +169,127 @@ def cmd_auth(args):
     print(f"Token cached at {args.token_cache}")
 
 
-# --- resolve --------------------------------------------------------------
+# --- Genius: producer identity + credit lookup -----------------------------
 
-MUSIC_TOPIC_HINT = "music"
+def genius_token():
+    token = os.environ.get("GENIUS_ACCESS_TOKEN")
+    if not token:
+        die("GENIUS_ACCESS_TOKEN is not set. See references/credentials-setup.md.")
+    return token
 
 
-def is_music_channel(channel):
-    categories = channel.get("topicDetails", {}).get("topicCategories", [])
-    return any(MUSIC_TOPIC_HINT in cat.lower() for cat in categories)
-
-
-def channel_subs(channel):
-    stats = channel.get("statistics", {})
-    if stats.get("hiddenSubscriberCount"):
-        return 0
+def genius_get(path, params, timeout):
     try:
-        return int(stats.get("subscriberCount", 0))
-    except ValueError:
-        return 0
+        resp = requests.get(
+            f"{GENIUS_API_BASE}{path}",
+            params=params,
+            headers={"Authorization": f"Bearer {genius_token()}"},
+            timeout=timeout,
+        )
+    except requests.exceptions.Timeout:
+        die(
+            f"Genius API call to {path} timed out after {timeout}s. "
+            "Stopping — tell me how you'd like to proceed."
+        )
+    resp.raise_for_status()
+    return resp.json()["response"]
 
 
-def channel_url(channel):
-    custom_url = channel.get("snippet", {}).get("customUrl")
-    if custom_url:
-        handle = custom_url if custom_url.startswith("@") else f"@{custom_url}"
-        return f"https://www.youtube.com/{handle}"
-    return f"https://www.youtube.com/channel/{channel['id']}"
+def resolve_producer_candidates(name, timeout, limit=5):
+    """Search Genius for the name and return plausible artist candidates.
+    Genius has no direct "look up this artist" endpoint by name, so this
+    goes through song search and pulls out artists whose name contains the
+    query — deliberately permissive, since ambiguity here should be
+    surfaced to the user rather than silently resolved."""
+    data = genius_get("/search", {"q": name}, timeout)
+    seen = {}
+    for hit in data.get("hits", []):
+        result = hit["result"]
+        for artist in [result["primary_artist"]] + result.get("featured_artists", []):
+            if artist["id"] not in seen and name.lower() in artist["name"].lower():
+                seen[artist["id"]] = {"id": artist["id"], "name": artist["name"], "url": artist["url"]}
+        if len(seen) >= limit:
+            break
+    return list(seen.values())[:limit]
 
+
+def song_credits_producer(song_id, producer_artist_id, timeout):
+    """Confirm via the song detail endpoint that this song actually credits
+    the producer — a Genius search hit only means the name appears
+    somewhere on the page, not that they're a confirmed producer_artists
+    credit."""
+    song = genius_get(f"/songs/{song_id}", {"text_format": "plain"}, timeout)["song"]
+    producer_ids = {p["id"] for p in song.get("producer_artists", [])}
+    return producer_artist_id in producer_ids, song
+
+
+GENIUS_SORT_BY_OUR_SORT = {"recent": "release_date", "popular": "popularity"}
+
+
+def find_credited_songs(producer_name, producer_artist_id, want, timeout, sort="recent", max_pages=GENIUS_SEARCH_MAX_PAGES):
+    """Pull candidate songs from the artist's own Genius page
+    (`/artists/{id}/songs`), sorted server-side by release_date or
+    popularity to match the requested sort — this is a far better
+    candidate source than generic full-text `/search`, since it's already
+    scoped to songs Genius associates with this specific artist and
+    already ordered by the signal we care about (verified live: for
+    Swizz Beatz, sort=release_date puts his most recent production credit
+    dead first).
+
+    It still isn't producer-specific, though — the artist-songs listing
+    includes ANY credited role (writer, feature, producer), so each
+    candidate is confirmed via the song detail endpoint exactly as before
+    (verified live: one of the top-5 results for Swizz Beatz credited him
+    as a writer only, not a producer, and was correctly filtered out)."""
+    genius_sort = GENIUS_SORT_BY_OUR_SORT.get(sort, "release_date")
+    confirmed = []
+    seen_song_ids = set()
+    page = 1
+    while len(confirmed) < want and page <= max_pages:
+        log(f"  [{producer_name}] Genius: fetching artist songs page {page}/{max_pages} (sort={genius_sort})...")
+        data = genius_get(
+            f"/artists/{producer_artist_id}/songs",
+            {"sort": genius_sort, "per_page": 20, "page": page},
+            timeout,
+        )
+        songs = data.get("songs", [])
+        if not songs:
+            log(f"  [{producer_name}] Genius: page {page} returned no songs, stopping search.")
+            break
+        log(f"  [{producer_name}] Genius: page {page} has {len(songs)} songs, confirming producer credit on each...")
+        for result in songs:
+            song_id = result["id"]
+            if song_id in seen_song_ids:
+                continue
+            seen_song_ids.add(song_id)
+            is_match, song = song_credits_producer(song_id, producer_artist_id, timeout)
+            if not is_match:
+                continue
+            confirmed.append(
+                {
+                    "genius_song_id": song_id,
+                    "title": song["title"],
+                    "primary_artist": song["primary_artist"]["name"],
+                    "genius_url": song["url"],
+                }
+            )
+            log(f"  [{producer_name}] Confirmed credit {len(confirmed)}/{want}: "
+                f"\"{song['title']}\" by {song['primary_artist']['name']}")
+            if len(confirmed) >= want:
+                break
+        page += 1
+    log(f"  [{producer_name}] Genius search done: {len(confirmed)} confirmed credits across {page - 1} page(s).")
+    return confirmed, page - 1
+
+
+def cmd_resolve(args):
+    candidates = resolve_producer_candidates(args.producer, args.timeout)
+    if not candidates:
+        die(f"No Genius artist candidates found for '{args.producer}'.")
+    print(json.dumps({"producer": args.producer, "candidates": candidates}, indent=2))
+
+
+# --- YouTube matching -------------------------------------------------------
 
 def video_url(video_id):
     return f"https://music.youtube.com/watch?v={video_id}"
@@ -195,141 +302,131 @@ def days_ago(iso_timestamp):
     return (datetime.now(timezone.utc) - published).days
 
 
-def find_topic_channel(channels, winner):
-    """Find the artist's auto-generated "<Name> - Topic" channel among the
-    search candidates. Matches by the "- Topic" suffix + Music tagging
-    rather than exact name equality, because YouTube's auto-generated
-    channel sometimes uses a shortened stage name (e.g. "Pharrell - Topic"
-    for "Pharrell Williams"). Ranks by subscriber count in case of
-    impostor/copycat channels squatting on the same "- Topic" title."""
-    winner_title = winner["snippet"]["title"].strip()
-    if winner_title.lower().endswith("- topic"):
-        return winner
-    candidates = [
-        c
-        for c in channels
-        if c["id"] != winner["id"]
-        and c["snippet"]["title"].strip().lower().endswith("- topic")
-        and is_music_channel(c)
-    ]
-    if not candidates:
-        return None
-    return max(candidates, key=channel_subs)
-
-
-def cmd_resolve(args):
-    token_info = get_access_token(args)
-    access_token = token_info["access_token"]
-
-    def call(path, params):
-        return api_get(path, access_token, params, args.timeout, retry_token_info=token_info, args=args)
-
+def best_youtube_match(access_token, artist, title, args, token_info):
+    """Returns (match, failure_reason) — exactly one is None. A failure here
+    (timeout, rate limit, any other API error) is per-song and non-fatal:
+    the caller records it and moves on to the next song rather than
+    aborting the whole plan. This is a deliberate choice — a single flaky
+    lookup shouldn't cost the user everything already found for every
+    other producer/song in the run. The full list of what failed vs.
+    succeeded is reported in the plan so the user can decide whether any
+    of it is worth retrying."""
+    query = f"{artist} - {title}"
     try:
-        search = call(
+        search = yt_get(
             "search",
-            {"part": "snippet", "q": args.producer, "type": "channel", "maxResults": 10},
-        )
-    except requests.exceptions.Timeout:
-        die(
-            f"YouTube channel search for '{args.producer}' timed out after {args.timeout}s. "
-            "Stopping — tell me how you'd like to proceed."
-        )
-
-    candidate_ids = [item["id"]["channelId"] for item in search.get("items", [])]
-    if not candidate_ids:
-        die(f"No YouTube channels found for '{args.producer}'.")
-
-    try:
-        details = call(
-            "channels",
-            {"part": "snippet,statistics,topicDetails", "id": ",".join(candidate_ids)},
-        )
-    except requests.exceptions.Timeout:
-        die(f"YouTube channel lookup timed out after {args.timeout}s. Stopping — tell me how you'd like to proceed.")
-
-    channels = details.get("items", [])
-    music_channels = [c for c in channels if is_music_channel(c)]
-
-    if not music_channels:
-        die(
-            f"None of the channels found for '{args.producer}' are tagged as Music on YouTube. "
-            "Candidates were: " + ", ".join(c["snippet"]["title"] for c in channels)
-        )
-
-    winner = max(music_channels, key=channel_subs)
-    winner_title = winner["snippet"]["title"]
-    topic_channel = find_topic_channel(channels, winner)
-
-    result = {
-        "producer": args.producer,
-        "resolved_channel_id": winner["id"],
-        "resolved_channel_title": winner_title,
-        "resolved_subscriber_count": channel_subs(winner),
-        "track_source_channel_id": (topic_channel or winner)["id"],
-        "track_source_channel_title": (topic_channel or winner)["snippet"]["title"],
-        "candidates_considered": [
-            {
-                "id": c["id"],
-                "title": c["snippet"]["title"],
-                "subscriber_count": channel_subs(c),
-                "is_music_channel": is_music_channel(c),
-            }
-            for c in channels
-        ],
-    }
-    print(json.dumps(result, indent=2))
-
-
-# --- tracks / plan --------------------------------------------------------
-
-def fetch_tracks(access_token, channel_id, count, sort, args, token_info):
-    order = "viewCount" if sort == "popular" else "date"
-
-    def call(path, params):
-        return api_get(path, access_token, params, args.timeout, retry_token_info=token_info, args=args)
-
-    try:
-        search = call(
-            "search",
+            access_token,
             {
                 "part": "snippet",
-                "channelId": channel_id,
+                "q": query,
                 "type": "video",
-                "order": order,
-                "maxResults": count,
                 "videoCategoryId": "10",
+                "maxResults": 5,
             },
+            args.timeout,
+            retry_token_info=token_info,
+            args=args,
         )
     except requests.exceptions.Timeout:
-        die(f"YouTube video search for channel {channel_id} timed out after {args.timeout}s. Stopping.")
+        return None, f"YouTube search timed out after {args.timeout}s"
+    except requests.exceptions.RequestException as e:
+        return None, f"YouTube search failed: {e}"
 
     items = search.get("items", [])
     video_ids = [i["id"]["videoId"] for i in items if "videoId" in i.get("id", {})]
     if not video_ids:
-        return []
+        return None, "no YouTube search results"
 
     try:
-        stats = call("videos", {"part": "statistics,snippet", "id": ",".join(video_ids)})
-    except requests.exceptions.Timeout:
-        die(f"YouTube video stats lookup timed out after {args.timeout}s. Stopping.")
-
-    stats_by_id = {v["id"]: v for v in stats.get("items", [])}
-    tracks = []
-    for i in items:
-        vid = i.get("id", {}).get("videoId")
-        if not vid or vid not in stats_by_id:
-            continue
-        v = stats_by_id[vid]
-        tracks.append(
-            {
-                "video_id": vid,
-                "title": v["snippet"]["title"],
-                "published_at": v["snippet"]["publishedAt"],
-                "view_count": int(v["statistics"].get("viewCount", 0)),
-                "url": video_url(vid),
-            }
+        stats = yt_get(
+            "videos",
+            access_token,
+            {"part": "statistics,snippet", "id": ",".join(video_ids)},
+            args.timeout,
+            retry_token_info=token_info,
+            args=args,
         )
-    return tracks[:count]
+    except requests.exceptions.Timeout:
+        return None, f"YouTube stats lookup timed out after {args.timeout}s"
+    except requests.exceptions.RequestException as e:
+        return None, f"YouTube stats lookup failed: {e}"
+
+    candidates = stats.get("items", [])
+    if not candidates:
+        return None, "no video stats returned"
+    # Among the top search hits, the one with the most views is taken as the
+    # correct/official upload for this song — search relevance alone is too
+    # noisy (lyric videos, fan reuploads, etc. can outrank the real one).
+    top = max(candidates, key=lambda v: int(v["statistics"].get("viewCount", 0)))
+    return {
+        "video_id": top["id"],
+        "title": top["snippet"]["title"],
+        "channel_title": top["snippet"]["channelTitle"],
+        "published_at": top["snippet"]["publishedAt"],
+        "view_count": int(top["statistics"].get("viewCount", 0)),
+        "url": video_url(top["id"]),
+    }, None
+
+
+# --- plan --------------------------------------------------------------
+
+def build_producer_plan(name, count, sort, args, token_info, access_token):
+    log(f"[{name}] Resolving Genius artist...")
+    candidates = resolve_producer_candidates(name, args.timeout)
+    if not candidates:
+        log(f"[{name}] No Genius artist candidates found.")
+        return {"producer": name, "error": "No Genius artist candidates found."}
+    if len(candidates) > 1:
+        log(f"[{name}] Ambiguous — {len(candidates)} Genius artist candidates found, stopping for disambiguation.")
+        return {
+            "producer": name,
+            "error": "Ambiguous — multiple Genius artist candidates found. Disambiguate and rerun.",
+            "candidates": candidates,
+        }
+
+    artist = candidates[0]
+    log(f"[{name}] Resolved to Genius artist \"{artist['name']}\" (id={artist['id']}).")
+    # Gather more confirmed credits than requested so recency/popularity
+    # sorting has something real to choose among, not just "first N found".
+    want = count * 2
+    log(f"[{name}] Searching Genius for credited songs (target: {want} confirmed credits)...")
+    credited_songs, pages_searched = find_credited_songs(
+        name, artist["id"], want=want, timeout=args.timeout, sort=sort
+    )
+
+    log(f"[{name}] Matching {len(credited_songs)} confirmed credits against YouTube...")
+    matched, skipped = [], []
+    for i, song in enumerate(credited_songs, start=1):
+        log(f"  [{name}] ({i}/{len(credited_songs)}) Searching YouTube for "
+            f"\"{song['title']}\" by {song['primary_artist']}...")
+        match, failure_reason = best_youtube_match(access_token, song["primary_artist"], song["title"], args, token_info)
+        if match:
+            log(f"  [{name}] ({i}/{len(credited_songs)}) OK: matched \"{match['title']}\"")
+            matched.append({**song, **match})
+        else:
+            log(f"  [{name}] ({i}/{len(credited_songs)}) FAILED: \"{song['title']}\" — {failure_reason}. Continuing.")
+            skipped.append({**song, "skip_reason": failure_reason})
+
+    matched.sort(key=lambda t: t["view_count"] if sort == "popular" else t["published_at"], reverse=True)
+    tracks = matched[:count]
+    most_recent = max((t["published_at"] for t in tracks), default=None)
+    log(
+        f"[{name}] Done: {len(matched)}/{len(credited_songs)} YouTube lookups succeeded "
+        f"({len(tracks)} kept after applying the count limit), {len(skipped)} failed — see "
+        "tracks_skipped in the plan for reasons."
+    )
+
+    return {
+        "producer": name,
+        "genius_artist_name": artist["name"],
+        "genius_artist_url": artist["url"],
+        "genius_pages_searched": pages_searched,
+        "tracks_found": len(tracks),
+        "tracks_skipped": skipped,
+        "most_recent_release_date": most_recent,
+        "most_recent_release_days_ago": days_ago(most_recent),
+        "tracks": tracks,
+    }
 
 
 def cmd_plan(args):
@@ -337,62 +434,23 @@ def cmd_plan(args):
     access_token = token_info["access_token"]
 
     plan = {"filters": {"count": args.count, "sort": args.sort}, "producers": []}
-    for name in args.producer:
-        try:
-            search = api_get(
-                "search",
-                access_token,
-                {"part": "snippet", "q": name, "type": "channel", "maxResults": 10},
-                args.timeout,
-                retry_token_info=token_info,
-                args=args,
-            )
-        except requests.exceptions.Timeout:
-            die(f"YouTube channel search for '{name}' timed out after {args.timeout}s. Stopping.")
-
-        candidate_ids = [item["id"]["channelId"] for item in search.get("items", [])]
-        if not candidate_ids:
-            plan["producers"].append({"producer": name, "error": "No YouTube channels found."})
-            continue
-
-        details = api_get(
-            "channels",
-            access_token,
-            {"part": "snippet,statistics,topicDetails", "id": ",".join(candidate_ids)},
-            args.timeout,
-            retry_token_info=token_info,
-            args=args,
-        )
-        channels = details.get("items", [])
-        music_channels = [c for c in channels if is_music_channel(c)]
-        if not music_channels:
-            plan["producers"].append(
-                {"producer": name, "error": "No candidate channel is tagged as Music."}
-            )
-            continue
-
-        winner = max(music_channels, key=channel_subs)
-        winner_title = winner["snippet"]["title"]
-        topic_channel = find_topic_channel(channels, winner)
-        source = topic_channel or winner
-
-        tracks = fetch_tracks(access_token, source["id"], args.count, args.sort, args, token_info)
-        most_recent = max((t["published_at"] for t in tracks), default=None)
-
+    total = len(args.producer)
+    for idx, name in enumerate(args.producer, start=1):
+        log(f"=== Producer {idx}/{total}: {name} ===")
         plan["producers"].append(
-            {
-                "producer": name,
-                "resolved_channel_title": winner_title,
-                "resolved_channel_url": channel_url(winner),
-                "resolved_subscriber_count": channel_subs(winner),
-                "track_source_channel_title": source["snippet"]["title"],
-                "track_source_channel_url": channel_url(source),
-                "tracks_found": len(tracks),
-                "most_recent_release_date": most_recent,
-                "most_recent_release_days_ago": days_ago(most_recent),
-                "tracks": tracks,
-            }
+            build_producer_plan(name, args.count, args.sort, args, token_info, access_token)
         )
+
+    log(f"=== All {total} producer(s) done. Summary: ===")
+    for p in plan["producers"]:
+        if "error" in p:
+            log(f"  {p['producer']}: ERROR — {p['error']}")
+            continue
+        succeeded = len(p.get("tracks", []))
+        failed = len(p.get("tracks_skipped", []))
+        log(f"  {p['producer']}: {succeeded} succeeded, {failed} failed")
+        for f_song in p.get("tracks_skipped", []):
+            log(f"    - FAILED \"{f_song['title']}\": {f_song['skip_reason']}")
 
     out_path = args.out
     with open(out_path, "w") as f:
@@ -419,7 +477,7 @@ def cmd_execute(args):
 
     try:
         resp = requests.post(
-            f"{API_BASE}/playlists",
+            f"{YT_API_BASE}/playlists",
             params={"part": "snippet,status"},
             headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
             json={
@@ -437,7 +495,7 @@ def cmd_execute(args):
     for track in all_tracks:
         try:
             item_resp = requests.post(
-                f"{API_BASE}/playlistItems",
+                f"{YT_API_BASE}/playlistItems",
                 params={"part": "snippet"},
                 headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
                 json={
@@ -480,12 +538,12 @@ def main():
     p_auth.add_argument("--token-cache", default=DEFAULT_TOKEN_CACHE)
     p_auth.set_defaults(func=cmd_auth)
 
-    p_resolve = sub.add_parser("resolve", help="Resolve a producer name to a YouTube channel")
+    p_resolve = sub.add_parser("resolve", help="Resolve a producer name to Genius artist candidates")
     p_resolve.add_argument("--producer", required=True)
     add_common_args(p_resolve)
     p_resolve.set_defaults(func=cmd_resolve)
 
-    p_plan = sub.add_parser("plan", help="Resolve producers and build the track plan (no writes)")
+    p_plan = sub.add_parser("plan", help="Resolve producers and build the credited-track plan (no writes)")
     p_plan.add_argument("--producer", action="append", required=True)
     p_plan.add_argument("--count", type=int, default=10)
     p_plan.add_argument("--sort", choices=["recent", "popular"], default="recent")

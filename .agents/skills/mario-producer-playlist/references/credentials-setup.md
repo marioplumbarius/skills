@@ -1,6 +1,6 @@
 # Credentials setup
 
-Only one credential is required: a YouTube Data API v3 OAuth client. (An earlier version of this skill also used a Genius API token for producer-credit verification; that dependency was dropped in favor of a YouTube-only pipeline.)
+Two credentials are required: a Genius API access token (producer-credit source of truth) and a YouTube Data API v3 OAuth client (matching + playlist creation).
 
 ## 0. Python dependencies
 
@@ -8,7 +8,18 @@ Only one credential is required: a YouTube Data API v3 OAuth client. (An earlier
 pip install -r scripts/requirements.txt
 ```
 
-## 1. YouTube Data API v3 OAuth client
+## 1. Genius API access token
+
+1. Go to [genius.com/api-clients](https://genius.com/api-clients), sign in, click "New API Client" (any app name/URL works — this is for read-only credit lookups).
+2. Generate a **Client Access Token** from the client's page.
+3. Export it:
+   ```bash
+   export GENIUS_ACCESS_TOKEN="<token>"
+   ```
+
+This token is read-only and has no write scope.
+
+## 2. YouTube Data API v3 OAuth client
 
 Reading public data (search, channel/video lookups) is possible with a plain API key, but **creating a playlist writes to a specific user's own account**, which Google's platform requires real OAuth user consent for — there's no API-key-only or client-secret-only path around this. It only needs to happen once per machine.
 
@@ -21,7 +32,7 @@ Reading public data (search, channel/video lookups) is possible with a plain API
    export YOUTUBE_CLIENT_SECRETS="/path/to/client_secret.json"
    ```
 
-## 2. Run the one-time browser auth
+## 3. Run the one-time browser auth
 
 ```bash
 python scripts/build_playlist.py auth
@@ -37,9 +48,14 @@ and confirm the auth flow is still binding to `127.0.0.1`, not `localhost`, befo
 
 **This OAuth client and its cached token only need to be set up once.** If a valid token is already cached, skip straight to using `resolve` / `plan` / `execute`.
 
+## A note on YouTube Data API quota
+
+The free daily quota is 10,000 units, and `search.list` costs 100 units per call — meaning **exactly 100 searches per day**, by default, for every project. `plan` calls `search.list` once per confirmed Genius credit per producer, so a handful of full runs can exhaust it. A `429` with `reason: rateLimitExceeded` and `quota_metric: youtube.googleapis.com/search_list` in the response body means the daily quota is exhausted, not a transient burst limit — no retry or backoff fixes this; only the midnight Pacific reset does, or a quota increase request (free to submit at [Google Cloud Console → IAM & Admin → Quotas](https://console.cloud.google.com/iam-admin/quotas), but manually reviewed and not a same-day fix).
+
 ## Verifying before use
 
 ```bash
+test -n "$GENIUS_ACCESS_TOKEN" && echo "Genius token OK" || echo "Missing GENIUS_ACCESS_TOKEN"
 test -n "$YOUTUBE_CLIENT_SECRETS" && test -f "$YOUTUBE_CLIENT_SECRETS" && echo "YouTube client secrets OK" || echo "Missing YOUTUBE_CLIENT_SECRETS"
 test -f ~/.cache/mario-producer-playlist/youtube_token.json && echo "Cached token found (auth already done)" || echo "No cached token — run 'auth' first"
 ```
