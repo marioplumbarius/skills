@@ -34,7 +34,7 @@ This design was reached the hard way: an earlier iteration tried resolving produ
 ## Step 1: Gather inputs
 
 - **Producers** — one or more names. Required.
-- **Tracks per producer** — default **3**. Kept deliberately small: each confirmed credit costs a YouTube `search.list` call, and the free daily quota is only 100 of those (see Gotchas) — a low default keeps a `plan` run affordable, especially across multiple producers.
+- **Tracks per producer** — default **3**. This build never calls YouTube's `search.list` at all (see Step 5.4) — matching relies solely on Genius-provided video links, so a low default is now about keeping the Genius round-trip count reasonable rather than search quota.
 - **Sort** — `recent` (default, newest release first) or `popular` (highest YouTube view count first). Real input, not a preset.
 
 Don't guess if any of these are genuinely unclear.
@@ -73,7 +73,6 @@ Genius has no direct "look up this artist" endpoint, so this searches broadly an
 python scripts/build_playlist.py plan \
   --producer "<name>" [--producer "<name>" ...] \
   --count 3 --sort recent|popular \
-  [--youtube-search-fallback] \
   --out plan.json
 ```
 
@@ -82,7 +81,7 @@ Per producer, this:
 1. Resolves the Genius artist (Step 4's logic, run automatically; stops with an `error` + candidate list if ambiguous rather than guessing).
 2. Pulls candidate songs from **`/artists/{id}/songs?sort=release_date|popularity`** — the artist's own Genius page, sorted server-side to match the requested sort. This is deliberately *not* generic `/search`: it's scoped to songs Genius already associates with this artist and pre-ordered by the right signal, which is both faster and more accurate than paginating full-text search. (Verified live: for Swizz Beatz, `sort=release_date` put his most recent actual production credit first in the list.)
 3. **Confirms each candidate's real producer credit** via the song detail endpoint's `producer_artists` field — the artist-songs listing includes *any* credited role (writer, feature, producer), so this confirmation step is not optional. (Verified live: one of Swizz Beatz's top candidates credited him as a writer only, not a producer, and was correctly filtered out.)
-4. Gathers roughly `count * 2` confirmed credits so there's a real pool to rank, then matches each to YouTube. **Genius song details often already include a direct YouTube link** in their `media` field (verified live across 10 songs from 3 producers: 8/10 had one) — when present, this is used to look the video up directly via `videos.list` (1 quota unit) instead of paying for a `search.list` call (100 units) to go find it. **`--youtube-search-fallback` is off by default** — a song with no Genius-provided link is simply skipped (recorded in `tracks_skipped`) rather than spending search quota on it. Only pass this flag when the user explicitly wants the fallback (100 units/song, and the daily budget is only 100 calls total) — don't turn it on "to be thorough" without them asking, since it's exactly the quota-burning behavior that got us into trouble during testing.
+4. Gathers roughly `count * 2` confirmed credits so there's a real pool to rank, then matches each to YouTube. **Genius song details often already include a direct YouTube link** in their `media` field (verified live across 10 songs from 3 producers: 8/10 had one) — when present, this is used to look the video up directly via `videos.list` (1 quota unit). **There is no search fallback — this build never calls `search.list` at all.** A song with no Genius-provided link is simply skipped (recorded in `tracks_skipped`). This is a hard constraint in the code, not a default that can be flagged back on — don't reintroduce a search-based fallback without the user explicitly asking for it again.
 5. Ranks the matched set by the requested sort and keeps the top `count`.
 
 **Every step logs its progress to stderr as it happens** (`log()` calls throughout) — a full run can take a while (a Genius round-trip per candidate + a YouTube round-trip per confirmed credit), and silence during that time reads as "stuck" even when it's actively working. Don't strip this logging out; if running the script yourself, don't redirect stderr away from something visible, and if backgrounding it, check the log file rather than assuming it's hung.
@@ -128,7 +127,8 @@ Report the result as `https://music.youtube.com/playlist?list=<PLAYLIST_ID>` —
 
 ## Gotchas
 
-- **YouTube Data API's free daily quota is exactly 100 `search.list` calls** (10,000 units/day ÷ 100 units per search — this is the standard default, not a special restriction). The Genius-media-first lookup (see Step 5.4) keeps most songs off this budget entirely, but the fallback search path still uses it — a `429` here is `reason: rateLimitExceeded` with `quota_metric: youtube.googleapis.com/search_list` — check the response body to confirm before assuming it's a transient burst limit; if the daily quota is exhausted, no backoff or retry fixes it, only waiting for the midnight Pacific reset or requesting a quota increase (free to submit, manually reviewed by Google, not instant — don't imply it's a same-day fix). Also remember the reset is midnight **Pacific**, not the local system clock's midnight — check `TZ='America/Los_Angeles' date` before assuming a new day means the quota is back.
+- **This build never calls `search.list` at all** — the earlier `--youtube-search-fallback` flag and its code path have been removed entirely, not just left off by default. Matching relies solely on the Genius-provided video link (`videos.list`, 1 quota unit); a song without one is skipped, recorded in `tracks_skipped`. If a future need arises to search YouTube directly, that's a deliberate reintroduction to discuss with the user, not a flag to flip back on.
+- **YouTube Data API's free daily quota is exactly 100 `search.list` calls** (10,000 units/day ÷ 100 units per search — the standard default). This no longer applies to this skill's own calls since it never uses `search.list`, but it's still worth knowing if quota errors show up from other tools sharing the same Google Cloud project.
 - **No automatic retry/backoff on YouTube failures, by deliberate design.** An earlier version added exponential backoff for 429s; the user explicitly asked to remove it in favor of per-song failure tracking + a final report, so a bad run doesn't silently burn time retrying something that won't clear (like a daily quota, which no backoff can fix anyway).
 - **Genius's `/artists/{id}/songs` is not producer-specific** — it lists any credited role. The per-song `producer_artists` confirmation step is load-bearing; don't skip it to save a round-trip.
 - **Ambiguous producer names** — always surface Genius candidates rather than guessing.
