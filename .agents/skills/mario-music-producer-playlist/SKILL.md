@@ -118,6 +118,8 @@ python scripts/build_playlist.py execute --plan-file plan.json --mode merge   --
 
 `--playlist-id` is required for `replace`/`merge` — get it from `list-playlists`, never guess or construct one. `replace` deletes every existing item in that playlist before adding the plan's tracks; treat that step with the same care as any other destructive write, since it's not reversible from here.
 
+**`execute` deduplicates by YouTube video ID before adding anything.** A track credited to more than one requested producer (e.g. a collab both of them produced) otherwise shows up twice in the plan's combined track list and would get added to the playlist twice — this is deduped down to one add, logged as `skipped_duplicate_in_plan` in the result. In `--mode merge`, it also fetches the target playlist's current contents first and skips any track already sitting there (`skipped_already_in_playlist`) — this matters for repeated merge runs against the same playlist, so re-running doesn't pile up duplicate entries. `--mode replace` doesn't need this second check since the playlist is cleared first.
+
 **New playlists default to `--privacy public`.** Pass `--privacy private` or `--privacy unlisted` explicitly if the user wants otherwise — don't assume public is always fine without at least a quick check when the content might be sensitive to the user, but don't ask about it every single time either now that it's the established default.
 
 Report the result as `https://music.youtube.com/playlist?list=<PLAYLIST_ID>` — always swap the host from the plain `youtube.com` form the API returns, since the ask is specifically to open it in YouTube Music.
