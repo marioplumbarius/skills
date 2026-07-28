@@ -14,7 +14,9 @@ caller (the agent driving this script) is expected to stop and ask the
 user what to do next, per mario-music-producer-playlist/SKILL.md.
 
 Subcommands:
-  auth  resolve  plan  execute
+  auth  resolve  plan  execute  (producer flow)
+  resolve-artist  list-albums  plan-albums  (album flow)
+  list-playlists
 """
 
 import argparse
@@ -32,6 +34,15 @@ SCOPE = "https://www.googleapis.com/auth/youtube"
 DEFAULT_TOKEN_CACHE = os.path.expanduser("~/.cache/mario-music-producer-playlist/youtube_token.json")
 
 GENIUS_API_BASE = "https://api.genius.com"
+# Genius's *public* web API (genius.com/api/...) — a distinct host from the
+# developer API above. It's what genius.com's own frontend calls, needs no
+# access token, and is the only place album/album-tracks data lives; the
+# obvious-looking developer-API route `api.genius.com/artists/{id}/albums`
+# is walled off (verified live: 403 "Action forbidden for current scope",
+# even with zero Authorization header — that's a scope block, not a missing
+# token). See list_artist_albums()/build_album_plan() for what's fetched
+# from here vs. the Bearer-token host above.
+GENIUS_PUBLIC_API_BASE = "https://genius.com/api"
 GENIUS_SEARCH_MAX_PAGES = 5
 
 
@@ -196,6 +207,21 @@ def genius_get(path, params, timeout):
     return resp.json()["response"]
 
 
+def genius_public_get(path, params, timeout):
+    """Hits genius.com's unauthenticated public web API (album/album-tracks
+    data only — see GENIUS_PUBLIC_API_BASE). No Authorization header: this
+    host doesn't accept the developer Bearer token and doesn't need one."""
+    try:
+        resp = requests.get(f"{GENIUS_PUBLIC_API_BASE}{path}", params=params, timeout=timeout)
+    except requests.exceptions.Timeout:
+        die(
+            f"Genius public API call to {path} timed out after {timeout}s. "
+            "Stopping — tell me how you'd like to proceed."
+        )
+    resp.raise_for_status()
+    return resp.json()["response"]
+
+
 def _normalize_name(s):
     """Strip everything but letters/digits before comparing artist names.
     Genius sometimes punctuates a stage name differently than how a user
@@ -338,6 +364,77 @@ def cmd_resolve(args):
     if not candidates:
         die(f"No Genius artist candidates found for '{args.producer}'.")
     print(json.dumps({"producer": args.producer, "candidates": candidates}, indent=2))
+
+
+# --- Genius: artist albums + album tracklists (for the album flow) --------
+#
+# Same "ambiguity gets surfaced, never guessed" rule as producer resolution:
+# resolve_producer_candidates() is generic name->artist search, reused here
+# under a clearer name since this path isn't producer-specific.
+resolve_artist_candidates = resolve_producer_candidates
+
+
+def cmd_resolve_artist(args):
+    candidates = resolve_artist_candidates(args.artist, args.timeout)
+    if not candidates:
+        die(f"No Genius artist candidates found for '{args.artist}'.")
+    print(json.dumps({"artist": args.artist, "candidates": candidates}, indent=2))
+
+
+def list_artist_albums(artist_id, timeout, max_pages=10):
+    """Pull an artist's discography from Genius's public web API
+    (genius.com/api/artists/{id}/albums — see GENIUS_PUBLIC_API_BASE),
+    paginating via the response's `next_page` field until it comes back
+    null. Verified live against Kendrick Lamar (artist id 1421): 19 albums
+    across 1 page, including deluxe editions and mixtapes as separate
+    entries — same as what genius.com's own discography page shows, since
+    that's exactly what this endpoint backs."""
+    albums = []
+    page = 1
+    while page <= max_pages:
+        data = genius_public_get(f"/artists/{artist_id}/albums", {"per_page": 50, "page": page}, timeout)
+        page_albums = data.get("albums", [])
+        for a in page_albums:
+            albums.append(
+                {
+                    "id": a["id"],
+                    "name": a["name"],
+                    "release_date": a.get("release_date_for_display") or a.get("release_date"),
+                    "url": a["url"],
+                }
+            )
+        if not data.get("next_page"):
+            break
+        page += 1
+    return albums
+
+
+def cmd_list_albums(args):
+    albums = list_artist_albums(args.artist_id, args.timeout)
+    if not albums:
+        die(f"No albums found for Genius artist id {args.artist_id}.")
+    print(json.dumps({"artist_id": args.artist_id, "albums": albums}, indent=2))
+
+
+def album_track_stubs(album_id, timeout, max_pages=10):
+    """Pull an album's tracklist, in album order, from Genius's public web
+    API (genius.com/api/albums/{id}/tracks — same host/auth story as
+    list_artist_albums() above). The song object embedded here is
+    abbreviated — no `media` or `producer_artists` (verified live: 30 keys,
+    no `media`) — so callers fetch the full song via the Bearer-token
+    `/songs/{id}` for that, same as the producer flow already does."""
+    tracks = []
+    page = 1
+    while page <= max_pages:
+        data = genius_public_get(f"/albums/{album_id}/tracks", {"per_page": 50, "page": page}, timeout)
+        page_tracks = data.get("tracks", [])
+        for t in page_tracks:
+            song = t["song"]
+            tracks.append({"genius_song_id": song["id"], "track_number": t.get("number")})
+        if not data.get("next_page"):
+            break
+        page += 1
+    return tracks
 
 
 # --- YouTube matching -------------------------------------------------------
@@ -498,6 +595,97 @@ def cmd_plan(args):
     print(f"\nPlan written to {out_path}", file=sys.stderr)
 
 
+# --- plan-albums ------------------------------------------------------------
+#
+# Same "never call search.list" constraint as the producer flow (see
+# youtube_video_by_id() above): matching is Genius-video-link-or-skip only.
+
+def build_album_plan(album_id, args, token_info, access_token):
+    log(f"[album {album_id}] Fetching album details...")
+    album = genius_public_get(f"/albums/{album_id}", {}, args.timeout)["album"]
+    name = album["name"]
+    artist_name = album["artist"]["name"]
+
+    log(f"[{name}] Fetching tracklist...")
+    stubs = album_track_stubs(album_id, args.timeout)
+    if not stubs:
+        log(f"[{name}] No tracks found for this album.")
+        return {"album": name, "album_id": album_id, "artist": artist_name, "error": "No tracks found for this album."}
+
+    log(f"[{name}] {len(stubs)} track(s) found, fetching full song details + matching YouTube...")
+    matched, skipped = [], []
+    for i, stub in enumerate(stubs, start=1):
+        song = genius_get(f"/songs/{stub['genius_song_id']}", {"text_format": "plain"}, args.timeout)["song"]
+        track_info = {
+            "genius_song_id": stub["genius_song_id"],
+            "track_number": stub.get("track_number"),
+            "title": song["title"],
+            "primary_artist": song["primary_artist"]["name"],
+            "genius_url": song["url"],
+        }
+        genius_video_id = extract_youtube_video_id(song.get("media"))
+        if genius_video_id:
+            log(f"  [{name}] ({i}/{len(stubs)}) Using Genius-linked video {genius_video_id} for "
+                f"\"{song['title']}\"...")
+            match, failure_reason = youtube_video_by_id(access_token, genius_video_id, args, token_info)
+        else:
+            match, failure_reason = None, (
+                "no Genius-linked YouTube video — YouTube search.list is disabled in this build, "
+                "so this song is skipped rather than searched for"
+            )
+
+        if match:
+            log(f"  [{name}] ({i}/{len(stubs)}) OK: matched \"{match['title']}\"")
+            matched.append({**track_info, **match})
+        else:
+            log(f"  [{name}] ({i}/{len(stubs)}) FAILED: \"{song['title']}\" — {failure_reason}. Continuing.")
+            skipped.append({**track_info, "skip_reason": failure_reason})
+
+    matched.sort(key=lambda t: t.get("track_number") if t.get("track_number") is not None else 0)
+    log(
+        f"[{name}] Done: {len(matched)}/{len(stubs)} YouTube lookups succeeded, "
+        f"{len(skipped)} failed — see tracks_skipped in the plan for reasons."
+    )
+
+    return {
+        "album": name,
+        "album_id": album_id,
+        "artist": artist_name,
+        "genius_album_url": album["url"],
+        "tracks_found": len(matched),
+        "tracks_skipped": skipped,
+        "tracks": matched,
+    }
+
+
+def cmd_plan_albums(args):
+    token_info = get_access_token(args)
+    access_token = token_info["access_token"]
+
+    plan = {"filters": {"mode": "album"}, "albums": []}
+    total = len(args.album)
+    for idx, album_id in enumerate(args.album, start=1):
+        log(f"=== Album {idx}/{total}: id={album_id} ===")
+        plan["albums"].append(build_album_plan(album_id, args, token_info, access_token))
+
+    log(f"=== All {total} album(s) done. Summary: ===")
+    for a in plan["albums"]:
+        if "error" in a:
+            log(f"  {a.get('album', a['album_id'])}: ERROR — {a['error']}")
+            continue
+        succeeded = len(a.get("tracks", []))
+        failed = len(a.get("tracks_skipped", []))
+        log(f"  {a['album']}: {succeeded} succeeded, {failed} failed")
+        for f_song in a.get("tracks_skipped", []):
+            log(f"    - FAILED \"{f_song['title']}\": {f_song['skip_reason']}")
+
+    out_path = args.out
+    with open(out_path, "w") as f:
+        json.dump(plan, f, indent=2)
+    print(json.dumps(plan, indent=2))
+    print(f"\nPlan written to {out_path}", file=sys.stderr)
+
+
 # --- execute --------------------------------------------------------------
 
 def cmd_list_playlists(args):
@@ -604,20 +792,26 @@ def cmd_execute(args):
     with open(args.plan_file) as f:
         plan = json.load(f)
 
-    all_tracks = [t for p in plan["producers"] if "tracks" in p for t in p["tracks"]]
+    all_tracks = [t for p in plan.get("producers", []) if "tracks" in p for t in p["tracks"]]
+    all_tracks += [t for a in plan.get("albums", []) if "tracks" in a for t in a["tracks"]]
     if not all_tracks:
         die("Plan has no tracks — nothing to create.")
 
     all_tracks, cross_producer_dupes = dedupe_by_video_id(all_tracks)
     if cross_producer_dupes:
-        log(f"Skipping {len(cross_producer_dupes)} track(s) already counted for another producer in this plan: "
+        log(f"Skipping {len(cross_producer_dupes)} track(s) already counted for another producer/album in this plan: "
             + ", ".join(f'\"{t["title"]}\"' for t in cross_producer_dupes))
 
     removed_count, removal_failures = 0, []
 
     if args.mode == "create":
-        producer_names = ", ".join(p["producer"] for p in plan["producers"] if "tracks" in p)
-        title = (args.title or f"Produced by {producer_names}")[:150]
+        if plan.get("producers"):
+            producer_names = ", ".join(p["producer"] for p in plan["producers"] if "tracks" in p)
+            default_title = f"Produced by {producer_names}"
+        else:
+            album_names = ", ".join(a["album"] for a in plan.get("albums", []) if "tracks" in a)
+            default_title = f"Albums: {album_names}"
+        title = (args.title or default_title)[:150]
         try:
             resp = requests.post(
                 f"{YT_API_BASE}/playlists",
@@ -736,6 +930,24 @@ def main():
     p_plan.add_argument("--out", default="plan.json")
     add_common_args(p_plan)
     p_plan.set_defaults(func=cmd_plan)
+
+    p_resolve_artist = sub.add_parser("resolve-artist", help="Resolve an artist name to Genius artist candidates")
+    p_resolve_artist.add_argument("--artist", required=True)
+    add_common_args(p_resolve_artist)
+    p_resolve_artist.set_defaults(func=cmd_resolve_artist)
+
+    p_list_albums = sub.add_parser("list-albums", help="List a Genius artist's albums")
+    p_list_albums.add_argument("--artist-id", type=int, required=True)
+    add_common_args(p_list_albums)
+    p_list_albums.set_defaults(func=cmd_list_albums)
+
+    p_plan_albums = sub.add_parser(
+        "plan-albums", help="Build the track plan for one or more full albums (no writes)"
+    )
+    p_plan_albums.add_argument("--album", type=int, action="append", required=True, help="Genius album id (repeatable)")
+    p_plan_albums.add_argument("--out", default="plan.json")
+    add_common_args(p_plan_albums)
+    p_plan_albums.set_defaults(func=cmd_plan_albums)
 
     p_list_playlists = sub.add_parser(
         "list-playlists", help="List the authenticated user's existing playlists"
