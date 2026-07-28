@@ -256,7 +256,8 @@ def extract_youtube_video_id(media):
 GENIUS_SORT_BY_OUR_SORT = {"recent": "release_date", "popular": "popularity"}
 
 
-def find_credited_songs(producer_name, producer_artist_id, want, timeout, sort="recent", max_pages=GENIUS_SEARCH_MAX_PAGES):
+def find_credited_songs(producer_name, producer_artist_id, want, timeout, sort="recent",
+                         max_pages=GENIUS_SEARCH_MAX_PAGES, exclude_artists=None):
     """Pull candidate songs from the artist's own Genius page
     (`/artists/{id}/songs`), sorted server-side by release_date or
     popularity to match the requested sort — this is a far better
@@ -270,10 +271,22 @@ def find_credited_songs(producer_name, producer_artist_id, want, timeout, sort="
     includes ANY credited role (writer, feature, producer), so each
     candidate is confirmed via the song detail endpoint exactly as before
     (verified live: one of the top-5 results for Swizz Beatz credited him
-    as a writer only, not a producer, and was correctly filtered out)."""
+    as a writer only, not a producer, and was correctly filtered out).
+
+    `exclude_artists`, if given, drops any confirmed credit whose primary
+    artist matches one of those names (normalized comparison). This exists
+    for the "find the producers behind Artist X" workflow: once you've
+    already pivoted to a producer's own catalog, tracks credited back to
+    Artist X are the least interesting result — the user asked for what
+    else that producer made, not more of the artist they already know
+    about. Excluded songs don't count toward `want`, so the search keeps
+    paging until it finds enough genuinely-other-artist credits instead of
+    just returning a shorter list."""
     genius_sort = GENIUS_SORT_BY_OUR_SORT.get(sort, "release_date")
+    excluded_normalized = {_normalize_name(a) for a in (exclude_artists or [])}
     confirmed = []
     seen_song_ids = set()
+    excluded_count = 0
     page = 1
     while len(confirmed) < want and page <= max_pages:
         log(f"  [{producer_name}] Genius: fetching artist songs page {page}/{max_pages} (sort={genius_sort})...")
@@ -295,22 +308,29 @@ def find_credited_songs(producer_name, producer_artist_id, want, timeout, sort="
             is_match, song = song_credits_producer(song_id, producer_artist_id, timeout)
             if not is_match:
                 continue
+            primary_artist_name = song["primary_artist"]["name"]
+            if excluded_normalized and _normalize_name(primary_artist_name) in excluded_normalized:
+                excluded_count += 1
+                log(f"  [{producer_name}] Skipping \"{song['title']}\" — credited to excluded artist "
+                    f"{primary_artist_name}")
+                continue
             confirmed.append(
                 {
                     "genius_song_id": song_id,
                     "title": song["title"],
-                    "primary_artist": song["primary_artist"]["name"],
+                    "primary_artist": primary_artist_name,
                     "genius_url": song["url"],
                     "genius_video_id": extract_youtube_video_id(song.get("media")),
                 }
             )
             log(f"  [{producer_name}] Confirmed credit {len(confirmed)}/{want}: "
-                f"\"{song['title']}\" by {song['primary_artist']['name']}")
+                f"\"{song['title']}\" by {primary_artist_name}")
             if len(confirmed) >= want:
                 break
         page += 1
-    log(f"  [{producer_name}] Genius search done: {len(confirmed)} confirmed credits across {page - 1} page(s).")
-    return confirmed, page - 1
+    log(f"  [{producer_name}] Genius search done: {len(confirmed)} confirmed credits "
+        f"({excluded_count} excluded) across {page - 1} page(s).")
+    return confirmed, page - 1, excluded_count
 
 
 def cmd_resolve(args):
@@ -374,7 +394,7 @@ def youtube_video_by_id(access_token, video_id, args, token_info):
 # a default that can be flagged back on. If you need search-based matching
 # back, that's a deliberate reintroduction to discuss, not a flag flip.
 
-def build_producer_plan(name, count, sort, args, token_info, access_token):
+def build_producer_plan(name, count, sort, args, token_info, access_token, exclude_artists=None):
     log(f"[{name}] Resolving Genius artist...")
     candidates = resolve_producer_candidates(name, args.timeout)
     if not candidates:
@@ -394,8 +414,8 @@ def build_producer_plan(name, count, sort, args, token_info, access_token):
     # sorting has something real to choose among, not just "first N found".
     want = count * 2
     log(f"[{name}] Searching Genius for credited songs (target: {want} confirmed credits)...")
-    credited_songs, pages_searched = find_credited_songs(
-        name, artist["id"], want=want, timeout=args.timeout, sort=sort
+    credited_songs, pages_searched, excluded_count = find_credited_songs(
+        name, artist["id"], want=want, timeout=args.timeout, sort=sort, exclude_artists=exclude_artists
     )
 
     log(f"[{name}] Matching {len(credited_songs)} confirmed credits against YouTube...")
@@ -435,6 +455,7 @@ def build_producer_plan(name, count, sort, args, token_info, access_token):
         "genius_pages_searched": pages_searched,
         "tracks_found": len(tracks),
         "tracks_skipped": skipped,
+        "excluded_artist_credits": excluded_count,
         "most_recent_release_date": most_recent,
         "most_recent_release_days_ago": days_ago(most_recent),
         "tracks": tracks,
@@ -445,12 +466,16 @@ def cmd_plan(args):
     token_info = get_access_token(args)
     access_token = token_info["access_token"]
 
-    plan = {"filters": {"count": args.count, "sort": args.sort}, "producers": []}
+    plan = {
+        "filters": {"count": args.count, "sort": args.sort, "exclude_artists": args.exclude_artist or []},
+        "producers": [],
+    }
     total = len(args.producer)
     for idx, name in enumerate(args.producer, start=1):
         log(f"=== Producer {idx}/{total}: {name} ===")
         plan["producers"].append(
-            build_producer_plan(name, args.count, args.sort, args, token_info, access_token)
+            build_producer_plan(name, args.count, args.sort, args, token_info, access_token,
+                                 exclude_artists=args.exclude_artist)
         )
 
     log(f"=== All {total} producer(s) done. Summary: ===")
@@ -460,7 +485,9 @@ def cmd_plan(args):
             continue
         succeeded = len(p.get("tracks", []))
         failed = len(p.get("tracks_skipped", []))
-        log(f"  {p['producer']}: {succeeded} succeeded, {failed} failed")
+        excluded = p.get("excluded_artist_credits", 0)
+        excluded_note = f", {excluded} excluded (artist filter)" if excluded else ""
+        log(f"  {p['producer']}: {succeeded} succeeded, {failed} failed{excluded_note}")
         for f_song in p.get("tracks_skipped", []):
             log(f"    - FAILED \"{f_song['title']}\": {f_song['skip_reason']}")
 
@@ -694,6 +721,18 @@ def main():
     p_plan.add_argument("--producer", action="append", required=True)
     p_plan.add_argument("--count", type=int, default=3)
     p_plan.add_argument("--sort", choices=["recent", "popular"], default="recent")
+    p_plan.add_argument(
+        "--exclude-artist",
+        action="append",
+        default=None,
+        help=(
+            "Drop confirmed credits whose primary artist matches this name (repeatable). "
+            "For the 'find the producers behind Artist X' workflow: excludes X's own songs "
+            "from the resulting pool so the playlist surfaces what else these producers made, "
+            "not more of the artist you already named. Excluded tracks don't count against "
+            "--count — the search keeps paging for real replacements."
+        ),
+    )
     p_plan.add_argument("--out", default="plan.json")
     add_common_args(p_plan)
     p_plan.set_defaults(func=cmd_plan)
