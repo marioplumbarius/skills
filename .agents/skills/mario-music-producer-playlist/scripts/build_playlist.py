@@ -365,73 +365,14 @@ def youtube_video_by_id(access_token, video_id, args, token_info):
     }, None
 
 
-def best_youtube_match(access_token, artist, title, args, token_info):
-    """Returns (match, failure_reason) — exactly one is None. A failure here
-    (timeout, rate limit, any other API error) is per-song and non-fatal:
-    the caller records it and moves on to the next song rather than
-    aborting the whole plan. This is a deliberate choice — a single flaky
-    lookup shouldn't cost the user everything already found for every
-    other producer/song in the run. The full list of what failed vs.
-    succeeded is reported in the plan so the user can decide whether any
-    of it is worth retrying."""
-    query = f"{artist} - {title}"
-    try:
-        search = yt_get(
-            "search",
-            access_token,
-            {
-                "part": "snippet",
-                "q": query,
-                "type": "video",
-                "videoCategoryId": "10",
-                "maxResults": 5,
-            },
-            args.timeout,
-            retry_token_info=token_info,
-            args=args,
-        )
-    except requests.exceptions.Timeout:
-        return None, f"YouTube search timed out after {args.timeout}s"
-    except requests.exceptions.RequestException as e:
-        return None, f"YouTube search failed: {e}"
-
-    items = search.get("items", [])
-    video_ids = [i["id"]["videoId"] for i in items if "videoId" in i.get("id", {})]
-    if not video_ids:
-        return None, "no YouTube search results"
-
-    try:
-        stats = yt_get(
-            "videos",
-            access_token,
-            {"part": "statistics,snippet", "id": ",".join(video_ids)},
-            args.timeout,
-            retry_token_info=token_info,
-            args=args,
-        )
-    except requests.exceptions.Timeout:
-        return None, f"YouTube stats lookup timed out after {args.timeout}s"
-    except requests.exceptions.RequestException as e:
-        return None, f"YouTube stats lookup failed: {e}"
-
-    candidates = stats.get("items", [])
-    if not candidates:
-        return None, "no video stats returned"
-    # Among the top search hits, the one with the most views is taken as the
-    # correct/official upload for this song — search relevance alone is too
-    # noisy (lyric videos, fan reuploads, etc. can outrank the real one).
-    top = max(candidates, key=lambda v: int(v["statistics"].get("viewCount", 0)))
-    return {
-        "video_id": top["id"],
-        "title": top["snippet"]["title"],
-        "channel_title": top["snippet"]["channelTitle"],
-        "published_at": top["snippet"]["publishedAt"],
-        "view_count": int(top["statistics"].get("viewCount", 0)),
-        "url": video_url(top["id"]),
-    }, None
-
-
 # --- plan --------------------------------------------------------------
+#
+# NOTE: this build never calls YouTube's `search.list` (100 quota units/call).
+# Matching relies solely on the Genius-provided video link (`videos.list`,
+# 1 unit) via youtube_video_by_id(). A song with no Genius-linked video is
+# skipped rather than searched for — a deliberate, permanent constraint, not
+# a default that can be flagged back on. If you need search-based matching
+# back, that's a deliberate reintroduction to discuss, not a flag flip.
 
 def build_producer_plan(name, count, sort, args, token_info, access_token):
     log(f"[{name}] Resolving Genius artist...")
@@ -465,21 +406,10 @@ def build_producer_plan(name, count, sort, args, token_info, access_token):
             log(f"  [{name}] ({i}/{len(credited_songs)}) Using Genius-linked video {genius_video_id} for "
                 f"\"{song['title']}\" (cheap lookup, no search needed)...")
             match, failure_reason = youtube_video_by_id(access_token, genius_video_id, args, token_info)
-            if not match and args.youtube_search_fallback:
-                log(f"  [{name}] ({i}/{len(credited_songs)}) Genius-linked video lookup failed "
-                    f"({failure_reason}) — falling back to YouTube search...")
-                match, failure_reason = best_youtube_match(
-                    access_token, song["primary_artist"], song["title"], args, token_info
-                )
-        elif args.youtube_search_fallback:
-            log(f"  [{name}] ({i}/{len(credited_songs)}) No Genius-linked video — searching YouTube for "
-                f"\"{song['title']}\" by {song['primary_artist']}...")
-            match, failure_reason = best_youtube_match(
-                access_token, song["primary_artist"], song["title"], args, token_info
-            )
         else:
             match, failure_reason = None, (
-                "no Genius-linked YouTube video, and --youtube-search-fallback is off (default)"
+                "no Genius-linked YouTube video — YouTube search.list is disabled in this build, "
+                "so this song is skipped rather than searched for"
             )
 
         if match:
@@ -701,16 +631,6 @@ def main():
     p_plan.add_argument("--count", type=int, default=3)
     p_plan.add_argument("--sort", choices=["recent", "popular"], default="recent")
     p_plan.add_argument("--out", default="plan.json")
-    p_plan.add_argument(
-        "--youtube-search-fallback",
-        action="store_true",
-        default=False,
-        help=(
-            "Fall back to a YouTube search.list call (100 quota units) when a song has no "
-            "Genius-provided video link. Off by default — a song without one is simply skipped "
-            "instead of spending search quota on it."
-        ),
-    )
     add_common_args(p_plan)
     p_plan.set_defaults(func=cmd_plan)
 
