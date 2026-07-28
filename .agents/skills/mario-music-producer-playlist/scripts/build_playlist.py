@@ -603,6 +603,43 @@ def delete_all_playlist_items(access_token, playlist_id, args, token_info):
     return removed, failed
 
 
+def existing_playlist_video_ids(access_token, playlist_id, args, token_info):
+    """Video IDs already sitting in the target playlist. Used by --mode merge
+    so a re-run (or a track credited to more than one producer being merged
+    in a later run) doesn't add a second copy of something already there."""
+    video_ids = set()
+    page_token = None
+    while True:
+        params = {"part": "contentDetails", "playlistId": playlist_id, "maxResults": 50}
+        if page_token:
+            params["pageToken"] = page_token
+        data = yt_get("playlistItems", access_token, params, args.timeout, retry_token_info=token_info, args=args)
+        for item in data.get("items", []):
+            video_id = item.get("contentDetails", {}).get("videoId")
+            if video_id:
+                video_ids.add(video_id)
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+    return video_ids
+
+
+def dedupe_by_video_id(tracks):
+    """Keep the first occurrence of each video_id. A track credited to more
+    than one producer in the same run (e.g. a collab both producers worked
+    on) otherwise ends up in `all_tracks` twice and would be added to the
+    playlist twice."""
+    seen = set()
+    deduped, dupes = [], []
+    for t in tracks:
+        if t["video_id"] in seen:
+            dupes.append(t)
+            continue
+        seen.add(t["video_id"])
+        deduped.append(t)
+    return deduped, dupes
+
+
 def cmd_execute(args):
     token_info = get_access_token(args)
     access_token = token_info["access_token"]
@@ -613,6 +650,11 @@ def cmd_execute(args):
     all_tracks = [t for p in plan["producers"] if "tracks" in p for t in p["tracks"]]
     if not all_tracks:
         die("Plan has no tracks — nothing to create.")
+
+    all_tracks, cross_producer_dupes = dedupe_by_video_id(all_tracks)
+    if cross_producer_dupes:
+        log(f"Skipping {len(cross_producer_dupes)} track(s) already counted for another producer in this plan: "
+            + ", ".join(f'\"{t["title"]}\"' for t in cross_producer_dupes))
 
     removed_count, removal_failures = 0, []
 
@@ -640,6 +682,20 @@ def cmd_execute(args):
         if args.mode == "replace":
             removed_count, removal_failures = delete_all_playlist_items(access_token, playlist_id, args, token_info)
 
+    already_in_playlist = []
+    if args.mode == "merge":
+        existing_ids = existing_playlist_video_ids(access_token, playlist_id, args, token_info)
+        still_to_add = []
+        for t in all_tracks:
+            if t["video_id"] in existing_ids:
+                already_in_playlist.append(t)
+            else:
+                still_to_add.append(t)
+        all_tracks = still_to_add
+        if already_in_playlist:
+            log(f"Skipping {len(already_in_playlist)} track(s) already in the target playlist: "
+                + ", ".join(f'\"{t["title"]}\"' for t in already_in_playlist))
+
     added, failed = [], []
     for track in all_tracks:
         try:
@@ -662,7 +718,15 @@ def cmd_execute(args):
         except requests.exceptions.Timeout:
             failed.append({**track, "error": f"timed out after {args.timeout}s"})
 
-    result = {"playlist_id": playlist_id, "mode": args.mode, "added": len(added), "failed": failed}
+    result = {
+        "playlist_id": playlist_id,
+        "mode": args.mode,
+        "added": len(added),
+        "failed": failed,
+        "skipped_duplicate_in_plan": len(cross_producer_dupes),
+    }
+    if args.mode == "merge":
+        result["skipped_already_in_playlist"] = len(already_in_playlist)
     if args.mode == "replace":
         result["removed"] = removed_count
         result["removal_failures"] = removal_failures
