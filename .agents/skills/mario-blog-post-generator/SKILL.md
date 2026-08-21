@@ -9,13 +9,13 @@ description: >-
   posts) and wants a written piece out of it. Always confirm sort order
   (recency vs. popularity) before researching — never assume it. Produces
   Markdown by default, with inline hyperlink citations, a References list,
-  and a table of contents; can add a generated hero image (with in-image
+  and a table of contents; can add a generated top image (with in-image
   labels in the post's own language) and an embedded YouTube iframe on
   request.
 compatibility: >-
   Requires WebSearch/WebFetch for research (no dedicated X/Instagram/YouTube
   API keys needed today — see Credentials below), and the Canva MCP connector
-  if a hero image is requested. Extending output format support touches this
+  if a top image is requested. Extending output format support touches this
   skill's own reference files, not an external repo.
 metadata:
   author: mario
@@ -53,7 +53,7 @@ fields with defaults and the one field that has none.
 | Items per source | 5 | User can raise or lower this. Applies per source, not total. |
 | Sort order | **none — must ask** | "Recency" or "popularity." Changes which 5 items you'd pick, so a wrong guess produces a materially different post. Always ask if not stated. |
 | Output format | Markdown | See [references/formats.md](references/formats.md) if the user wants something else. |
-| Hero image | No | If yes, exactly one image, placed at the very top of the post. Generated via Canva — see Phase 3. |
+| Top image | No | If yes, exactly one image, placed at the very top of the post. Generated via Canva — see Phase 3. |
 | YouTube embed | No | If yes, embed as an `<iframe>` using the standard `youtube.com/embed/<id>` pattern, placed where the video is most relevant to the text — not necessarily at the top. |
 
 ## Phase 2 — Research each source
@@ -76,7 +76,7 @@ limit from Phase 1, ordered by the confirmed sort order:
   skip the video as a source rather than inventing what it says.
 - **Images**: search for and view relevant images (charts, photos, screenshots)
   that support the topic; describe what they show so the draft can reference
-  them accurately. This is source material, not the hero image from Phase 3.
+  them accurately. This is source material, not the top image from Phase 3.
 
 There is no dedicated API for X, Instagram, or YouTube in this environment —
 everything above runs through Claude's own search/fetch tools. If the user's
@@ -101,7 +101,7 @@ Structure, in order:
 2. **Table of contents** — links to each `##` section below it, generated
    from the section headers you actually use. Every post gets one, regardless
    of length.
-3. **Hero image**, if requested — immediately under the title/ToC, one image.
+3. **Top image**, if requested — immediately under the title/ToC, one image.
    Generate it with the Canva MCP connector (`generate-design`), not a raw
    image-generation API — this environment has no bare image-gen tool, and
    Canva also gives editable, on-brand output:
@@ -116,7 +116,7 @@ Structure, in order:
    - Once chosen, `create-design-from-candidate` to save it, then
      `get-export-formats` + `export-design` (type `png`) to get a download
      URL, and fetch that file locally so it can be embedded in the post
-     (e.g. `![alt text](hero.png)`, with the alt text also in the post's
+     (e.g. `![alt text](capa.png)`, with the alt text also in the post's
      language).
 4. **Body** — organized under `##` sections that make sense for the topic
    (not a fixed template; a news roundup and a how-to don't share a shape).
@@ -144,12 +144,12 @@ ask for changes. Do not proceed to Phase 5 without a clear go-ahead.
 ## Phase 5 — Finalize + save
 
 Save the approved draft to the format's file extension (e.g. `post.md`), and
-the hero image file alongside it if one was generated. Report the file
+the top image file alongside it if one was generated. Report the file
 path(s), word count, source count per platform, and citation count.
 
 ## Credentials
 
-Research needs no API keys — it runs on `WebSearch`/`WebFetch`. The hero
+Research needs no API keys — it runs on `WebSearch`/`WebFetch`. The top
 image uses the Canva MCP connector, authenticated through the user's own
 Canva connection (not a key this skill manages). If a future version adds a
 dedicated X, Instagram, or YouTube API integration, its required credential
@@ -172,10 +172,10 @@ for tools that aren't in use yet.
   user wants a format not in [references/formats.md](references/formats.md),
   say so, offer to add support for it (a short addition to that file), do it
   once they agree, then produce the post in it.
-- **One hero image, always at the top.** Don't generate more than one, and
+- **One top image, always at the top.** Don't generate more than one, and
   don't place it mid-post — that's what the source-material images from
   Phase 2 are for.
-- **Hero image language must match the post.** Canva won't automatically
+- **Top image language must match the post.** Canva won't automatically
   write in-image labels in the post's language — say so explicitly in the
   `generate-design` query, and check the returned thumbnail before locking
   in a candidate.
