@@ -10,7 +10,7 @@
 - Headings: `#` title, `##` sections. Don't go deeper than `###` — a blog
   post rarely needs it, and a flatter structure keeps the ToC readable.
 - Inline citations: standard Markdown links, `[Label](url)`.
-- Hero image: `![Alt text](path-or-url)` immediately after the ToC.
+- Top image: `![Alt text](path-or-url)` immediately after the ToC.
 - YouTube embed: raw `<iframe>` HTML works fine inside Markdown — most
   renderers (GitHub, most blog platforms) pass it through.
 - File extension: `.md`.
@@ -23,7 +23,7 @@ either — offer to add it properly:
 
 1. Tell the user this format isn't supported yet.
 2. Offer to add it: a new subsection here defining how ToC, headings,
-   citations, hero image, and video embed render in that format, using the
+   citations, top image, and video embed render in that format, using the
    Markdown section above as the template for what needs specifying.
 3. Once they agree, write that subsection, then produce the post using it.
 
