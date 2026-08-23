@@ -9,16 +9,17 @@ the only way to see live progress on a long recording, but printing it unconditi
 would be noisy for short ones.
 """
 import argparse
+
 import mlx_whisper
 
 
-def format_timestamp(seconds):
+def format_timestamp(seconds: float) -> str:
     """mlx-whisper reports segment times as float seconds; transcripts read as MM:SS."""
     m, s = divmod(int(seconds), 60)
     return f"{m:02d}:{s:02d}"
 
 
-def transcribe(input_path, output_path, verbose, timestamps):
+def transcribe(input_path: str, output_path: str, verbose: bool, timestamps: bool) -> None:
     """Transcribe input_path and write the result to output_path.
 
     Runs "large-v3-turbo" specifically: it's the mlx-community checkpoint tuned for
@@ -43,8 +44,8 @@ def transcribe(input_path, output_path, verbose, timestamps):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_path")
-    parser.add_argument("output_path")
+    parser.add_argument("input_path", type=str)
+    parser.add_argument("output_path", type=str)
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--no-timestamps", action="store_true")
     args = parser.parse_args()
