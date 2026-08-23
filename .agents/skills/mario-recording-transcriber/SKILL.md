@@ -2,13 +2,14 @@
 name: mario-recording-transcriber
 description: >-
   Convert a spoken audio recording into a text transcript with per-segment [MM:SS]
-  timestamps by default, then read the transcript, propose five topic options for what it's
-  mainly about, and once the user picks one, save the transcript and a copy of the source
-  audio side by side under a filename prefixed with that topic and a timestamp. Use
-  whenever the user says "transcribe this recording," "convert this audio to text," "speech
-  to text this file," or points to / attaches an audio file and wants a written transcript.
-  Defaults to ~/Recordings as both source and output location. Always show a step-by-step
-  progress checklist so the user can see which step is running.
+  timestamps by default, confirm the detected language with the user, then read the
+  transcript, propose five topic options for what it's mainly about, and once the user
+  picks one, save the transcript and a copy of the source audio side by side under a
+  filename made of the topic, the confirmed language, and a timestamp. Use whenever the
+  user says "transcribe this recording," "convert this audio to text," "speech to text this
+  file," or points to / attaches an audio file and wants a written transcript. Defaults to
+  ~/Recordings as both source and output location. Always show a step-by-step progress
+  checklist so the user can see which step is running.
 compatibility: >-
   macOS on Apple Silicon. Requires ffmpeg (installed via Homebrew if missing) and a local
   Python virtualenv with mlx-whisper — see references/dependency-setup.md. Never installs
@@ -21,9 +22,9 @@ metadata:
 
 # Recording Transcriber
 
-Convert a spoken audio recording into a text transcript, let the user pick which topic best
-names it, and keep the transcript and the source audio filed together under one
-topic-and-timestamp name.
+Convert a spoken audio recording into a text transcript, confirm its language and let the
+user pick which topic best names it, and keep the transcript and the source audio filed
+together under one topic-language-timestamp name.
 
 ---
 
@@ -36,10 +37,11 @@ completes, so the user always sees which step is running:
 - [ ] Step 1: Resolve input audio
 - [ ] Step 2: Verify/install dependencies
 - [ ] Step 3: Transcribe audio
-- [ ] Step 4: Propose topic options & get user's choice
-- [ ] Step 5: Determine output filename & paths
-- [ ] Step 6: Save transcript + copy audio
-- [ ] Step 7: Deliver results
+- [ ] Step 4: Confirm detected language
+- [ ] Step 5: Propose topic options & get user's choice
+- [ ] Step 6: Determine output filename & paths
+- [ ] Step 7: Save transcript + copy audio
+- [ ] Step 8: Deliver results
 ```
 
 ---
@@ -78,8 +80,9 @@ the user rather than degrading to a slower alternative.
 
 ## Step 3: Transcribe audio
 
-The final filename depends on a topic the user hasn't chosen yet (Step 4), so transcribe to
-a scratch path first — e.g. the session scratchpad — and move it into place in Step 6.
+The final filename depends on the language and topic the user hasn't confirmed yet (Steps 4
+and 5), so transcribe to a scratch path first — e.g. the session scratchpad — and move it
+into place in Step 7.
 
 Run the bundled script through the persistent venv's Python (see
 [references/dependency-setup.md](references/dependency-setup.md)):
@@ -97,8 +100,20 @@ Run the bundled script through the persistent venv's Python (see
 - A tail of repeated short phrases (e.g. "Thank you." over and over) is a known
   hallucination-on-silence artifact from whisper, not a transcription error — mention it in
   the delivery caption rather than silently editing it out of the transcript.
+- The script's last line of stdout is `LANGUAGE: <code>` (e.g. `LANGUAGE: en`) — capture it
+  for Step 4. It's printed separately from the whisper progress bar and any verbose segment
+  output specifically so it can be parsed reliably.
 
-## Step 4: Propose topic options & get user's choice
+## Step 4: Confirm detected language
+
+- Take the language code captured from Step 3's `LANGUAGE: <code>` output.
+- Ask the user to confirm it (e.g. via `AskUserQuestion`), defaulting to the detected code,
+  but letting them override it — whisper's language detection can be wrong on short or
+  accented audio.
+- The confirmed code (not necessarily the one whisper detected) is what goes into the
+  filename in Step 6.
+
+## Step 5: Propose topic options & get user's choice
 
 - Read the scratch transcript from Step 3.
 - Propose exactly **five** short topic options describing what the recording is mainly
@@ -106,31 +121,33 @@ Run the bundled script through the persistent venv's Python (see
   of the whole transcript. Ground them in what's actually discussed, not generic guesses.
 - Ask the user to pick one, e.g. via `AskUserQuestion` (which also lets them supply their
   own topic instead if none of the five fit).
-- The chosen topic becomes the filename prefix in Step 5 — slugify it for filesystem safety
+- The chosen topic becomes the filename prefix in Step 6 — slugify it for filesystem safety
   (spaces → hyphens, drop characters that aren't alphanumeric/hyphen/underscore, keep it
   short).
 
-## Step 5: Determine output filename & paths
+## Step 6: Determine output filename & paths
 
 - Output folder defaults to the **same folder as the source audio**.
-- Filename = `<topic-slug>_<timestamp>`, where `<timestamp>` is the **source audio file's
-  own modification timestamp**, formatted `YYYYMMDD_HHMMSS` — not "now." This keeps the
-  name tied to when the recording actually happened, even if transcription runs later.
-- Transcript → `<topic-slug>_<timestamp>.txt`; copied audio →
-  `<topic-slug>_<timestamp><original-extension>`.
+- Filename = `<topic-slug>_<language-code>_<timestamp>`, where `<timestamp>` is the
+  **source audio file's own modification timestamp**, formatted `YYYYMMDD_HHMMSS` — not
+  "now." This keeps the name tied to when the recording actually happened, even if
+  transcription runs later. `<language-code>` is the one confirmed in Step 4, placed right
+  after the topic prefix and before the timestamp.
+- Transcript → `<topic-slug>_<language-code>_<timestamp>.txt`; copied audio →
+  `<topic-slug>_<language-code>_<timestamp><original-extension>`.
 - Honor a user-specified output folder or filename format if one was given instead.
 - If the target transcript or audio-copy file already exists, **ask before overwriting**
   (this is the one destructive edge case in this skill).
 
-## Step 6: Save transcript + copy audio
+## Step 7: Save transcript + copy audio
 
 - Move (or copy) the scratch transcript from Step 3 to
-  `<output_folder>/<topic-slug>_<timestamp>.txt`.
+  `<output_folder>/<topic-slug>_<language-code>_<timestamp>.txt`.
 - Copy — not move, unless the user explicitly asked to move the source — the source audio
-  to `<output_folder>/<topic-slug>_<timestamp><original-extension>`.
+  to `<output_folder>/<topic-slug>_<language-code>_<timestamp><original-extension>`.
 - If source and destination already coincide (same folder, same name), skip the audio copy.
 
-## Step 7: Deliver results
+## Step 8: Deliver results
 
 - Mark every checklist step complete.
 - Use `SendUserFile` to deliver the transcript `.txt` (and the audio copy, if one was newly
@@ -151,8 +168,10 @@ Run the bundled script through the persistent venv's Python (see
   the user expects plain text, and point them at the Step 1 opt-out (`--no-timestamps`).
 - When audio arrives via chat attachment, resolve its real saved path before treating its
   parent folder as the output default — it usually isn't `~/Recordings`.
-- The final filename isn't known until *after* transcription (it depends on the topic the
-  user picks in Step 4), so Step 3 must write to a scratch path, not directly into the
-  output folder.
+- The final filename isn't known until *after* transcription (it depends on the language
+  and topic confirmed in Steps 4 and 5), so Step 3 must write to a scratch path, not
+  directly into the output folder.
 - Slugify the chosen topic before using it in a filename — don't write raw spaces or
   punctuation from the user's chosen option straight into a path.
+- Whisper's language detection can be wrong, especially on short clips or strong accents —
+  always let the user confirm or override it in Step 4 rather than trusting it blindly.

@@ -6,7 +6,8 @@ navigable afterward (e.g. jumping to a moment in a long recording) rather than j
 readable block of prose; --no-timestamps exists for callers who want plain text instead.
 verbose is opt-in rather than always-on because mlx-whisper has no dry-run/ETA API, so it's
 the only way to see live progress on a long recording, but printing it unconditionally
-would be noisy for short ones.
+would be noisy for short ones. The detected language is printed as a final "LANGUAGE: xx"
+line so the calling skill can use it in the output filename after the user confirms it.
 """
 import argparse
 
@@ -40,6 +41,10 @@ def transcribe(input_path: str, output_path: str, verbose: bool, timestamps: boo
         text = result["text"].strip()
     with open(output_path, "w") as f:
         f.write(text)
+    # Printed on its own final line, separate from the whisper progress bar and any
+    # verbose segment output, so the calling skill can reliably parse the detected
+    # language code out of stdout without depending on whisper's own log formatting.
+    print(f"LANGUAGE: {result['language']}")
 
 
 if __name__ == "__main__":
