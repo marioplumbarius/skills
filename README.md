@@ -1,6 +1,6 @@
 # skills
 
-A library of agent skills built on Mario's philosophy: grounded in expertise, prescriptive when it matters, and designed for clarity and coherence.
+A library of agent skills built on Plumbeer's philosophy: grounded in expertise, prescriptive when it matters, and designed for clarity and coherence.
 
 ## Install
 
@@ -15,11 +15,11 @@ The plugin is available in the Claude Code marketplace.
 **Step 2:** Use any skill:
 
 ```bash
-/mario-skill-name
+/plumbeer-skill-name
 ```
 
 The plugin auto-updates with every release.
 
 ## Manage skills
 
-Use `.agents/skills/mario-skill-creator` from this repo to build or update skills following Mario's philosophy.
+Use `.agents/skills/plumbeer-skill-creator` from this repo to build or update skills following Plumbeer's philosophy.

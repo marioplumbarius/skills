@@ -1,5 +1,5 @@
 ---
-name: mario-music-producer-playlist
+name: plumbeer-music-producer-playlist
 description: >-
   Build a YouTube Music playlist made entirely of songs credited to one or
   more named producers (e.g. Pharrell, Timbaland, Swizz Beatz) — including
@@ -22,7 +22,7 @@ compatibility: >-
   creation). See references/credentials-setup.md. Uses
   scripts/build_playlist.py.
 metadata:
-  author: mario
+  author: plumbeer
   version: "4.0"
   category: music
 ---

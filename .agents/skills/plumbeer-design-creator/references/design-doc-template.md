@@ -73,7 +73,7 @@ in real names, not placeholders.
 
 # ⚠️ STOP HERE and get a goals review of the above sections before proceeding. ⚠️
 
-See the design-review-process reference bundled with the `mario-design-reviewer`
+See the design-review-process reference bundled with the `plumbeer-design-reviewer`
 skill for best practices on how and when to review a design doc.
 
 ## Strategy

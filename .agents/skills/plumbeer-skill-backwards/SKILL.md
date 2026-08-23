@@ -1,5 +1,5 @@
 ---
-name: mario-skill-backwards
+name: plumbeer-skill-backwards
 description: >-
   Analyze the current Claude session, apply the STAR framework (Situation,
   Task, Action, Result) to reconstruct the thought process from ideation to
@@ -8,7 +8,7 @@ description: >-
   "skill backwards", "write up what we did", or wants a structured record of
   a problem-solving session.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: knowledge-management
 ---

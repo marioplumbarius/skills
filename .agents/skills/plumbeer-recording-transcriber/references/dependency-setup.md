@@ -33,20 +33,20 @@ brew install ffmpeg
 ## 2. mlx-whisper virtualenv
 
 Use a **persistent** location, not a per-session scratchpad — the whole point is not
-reinstalling on every run. Use `~/.mario-skills/recording-transcriber/venv`.
+reinstalling on every run. Use `~/.plumbeer-skills/recording-transcriber/venv`.
 
 Check whether it already works:
 
 ```bash
-~/.mario-skills/recording-transcriber/venv/bin/python -c "import mlx_whisper" 2>&1
+~/.plumbeer-skills/recording-transcriber/venv/bin/python -c "import mlx_whisper" 2>&1
 ```
 
 If that fails (venv doesn't exist yet, or the import fails), create/repair it:
 
 ```bash
-mkdir -p ~/.mario-skills/recording-transcriber
-python3 -m venv ~/.mario-skills/recording-transcriber/venv
-~/.mario-skills/recording-transcriber/venv/bin/pip install --quiet mlx-whisper
+mkdir -p ~/.plumbeer-skills/recording-transcriber
+python3 -m venv ~/.plumbeer-skills/recording-transcriber/venv
+~/.plumbeer-skills/recording-transcriber/venv/bin/pip install --quiet mlx-whisper
 ```
 
 Do **not** `pip install` into system or Homebrew Python — Homebrew's Python refuses
@@ -58,7 +58,7 @@ avoidable.
 Re-run the import check:
 
 ```bash
-~/.mario-skills/recording-transcriber/venv/bin/python -c "import mlx_whisper; print('ok')"
+~/.plumbeer-skills/recording-transcriber/venv/bin/python -c "import mlx_whisper; print('ok')"
 ```
 
 If this still fails despite the Step 0 platform check passing, stop and tell the user the
