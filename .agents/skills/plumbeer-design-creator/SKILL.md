@@ -1,8 +1,8 @@
 ---
-name: mario-design-creator
+name: plumbeer-design-creator
 description: >-
   Interactively author a new design doc from scratch, gathering the author's
-  input section by section and gating progress on mario-design-reviewer's
+  input section by section and gating progress on plumbeer-design-reviewer's
   checklist — never advancing to the next section or phase until the current
   one is fully met (or the user explicitly says to bypass). Use whenever the
   user wants to write, start, or draft a design doc, high-level design, or
@@ -11,13 +11,13 @@ description: >-
   through the design review process for this." Produces a single markdown
   file following the bundled design doc template.
 compatibility: >-
-  Hard dependency on the mario-design-reviewer skill (invoked via the Skill
+  Hard dependency on the plumbeer-design-reviewer skill (invoked via the Skill
   tool) for checklist-driven gating — do not use this skill if
-  mario-design-reviewer is unavailable. Uses references/design-doc-template.md
+  plumbeer-design-reviewer is unavailable. Uses references/design-doc-template.md
   as the canonical document skeleton, and Write/Edit to create and update the
   doc file on disk.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: document-authoring
 ---
@@ -25,7 +25,7 @@ metadata:
 # Design Doc Creator
 
 Interactively author a design doc, one section at a time, following the same
-design review process that `mario-design-reviewer` grades against — so the
+design review process that `plumbeer-design-reviewer` grades against — so the
 doc that comes out the other end is review-ready by construction, not by
 luck.
 
@@ -36,12 +36,12 @@ luck.
 **Never advance past a gate that hasn't been satisfied.** A gate is
 satisfied one of two ways:
 
-1. **Content gate** — invoke the `mario-design-reviewer` skill against the
+1. **Content gate** — invoke the `plumbeer-design-reviewer` skill against the
    current draft file, and the relevant checklist row(s) come back
    `✅ Met` or `N/A`.
 2. **Process gate** — the user directly confirms the real-world action
    happened (a review meeting was held, allies were consulted, etc.) —
-   `mario-design-reviewer` can't see this from the file alone, so ask
+   `plumbeer-design-reviewer` can't see this from the file alone, so ask
    directly.
 
 If a gate isn't satisfied, don't move on — help the user close the gap (ask
@@ -103,7 +103,7 @@ Ask for, and write into the file, one section at a time, in this order:
 | 7 | Glossary *(skip if no jargon/acronyms — not checklist-graded)* | — |
 | 8 | Key Allies | #7 |
 
-After each section, invoke the `mario-design-reviewer` skill on the file and
+After each section, invoke the `plumbeer-design-reviewer` skill on the file and
 check **only that row's Status**:
 
 - `✅ Met` → move to the next section.
@@ -198,25 +198,25 @@ Same bypass rule.
 
 ### Phase 4 — Finalize
 
-1. Invoke `mario-design-reviewer` one last time on the finished file and
+1. Invoke `plumbeer-design-reviewer` one last time on the finished file and
    print its full 24-row readiness matrix and rollup line to the user.
 2. Confirm the file path and report it.
 3. If, during the conversation, a Challenge surfaced that's big enough to
    need its own Implementation Design doc (5+ engineers, or spans both
    control and data plane — see checklist row #14), say so explicitly and
-   suggest running `mario-design-creator` again scoped to that sub-problem
+   suggest running `plumbeer-design-creator` again scoped to that sub-problem
    — this is the process's own Phase 4 recursion, not a one-off suggestion.
 
 ---
 
 ## Gotchas
 
-- **`mario-design-reviewer` always grades all 24 rows**, regardless of how
+- **`plumbeer-design-reviewer` always grades all 24 rows**, regardless of how
   much of the doc exists — expect rows for sections you haven't reached yet
   to show `❌ Not Met`. Only read the row(s) relevant to your current gate;
   don't treat the rest as a report card.
 - **Resuming an existing file**: if the chosen path already has content,
-  don't overwrite it blindly — read it first, run `mario-design-reviewer`
+  don't overwrite it blindly — read it first, run `plumbeer-design-reviewer`
   against it to see which rows are already `Met`, and resume from the first
   non-`Met`/non-`N/A` row instead of restarting the interview from scratch.
 - **Key Allies and Blockers are additions to the base template**, not in the
@@ -229,6 +229,6 @@ Same bypass rule.
 - **Bypass is explicit only.** Don't read enthusiasm, urgency, or a topic
   change as permission to skip a gate — the user has to actually say so,
   and the doc has to say so too (a visible note, not a silent omission).
-- **This skill writes files** (unlike `mario-design-reviewer`, which is
+- **This skill writes files** (unlike `plumbeer-design-reviewer`, which is
   read-only) — confirm the file path before the first write, and don't
   write outside the path the user gave or confirmed.

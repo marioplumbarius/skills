@@ -1,5 +1,5 @@
 ---
-name: mario-prfaq-reviewer
+name: plumbeer-prfaq-reviewer
 description: >-
   Review a PR/FAQ document (Amazon Working Backwards format) against a
   32-item PR/FAQ Review Checklist and return a readiness matrix — the original
@@ -13,7 +13,7 @@ compatibility: >-
   Uses references/checklist.md, the bundled canonical checklist. For link
   input, uses notion-fetch for Notion URLs or WebFetch for other URLs.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: document-review
 ---
@@ -26,7 +26,7 @@ Grade a PR/FAQ document against a canonical 32-item PR/FAQ Review Checklist and 
 
 ## The rule
 
-The checklist in [references/checklist.md](references/checklist.md) is the canonical rubric — **never reword, reorder, drop, or add rows to it.** Your only job is to append two columns of assessment. If Mario asks you to change the checklist itself, that's a different task — that means editing `references/checklist.md` directly, deliberately, since it's the source of truth (see Gotchas).
+The checklist in [references/checklist.md](references/checklist.md) is the canonical rubric — **never reword, reorder, drop, or add rows to it.** Your only job is to append two columns of assessment. If Plumbeer asks you to change the checklist itself, that's a different task — that means editing `references/checklist.md` directly, deliberately, since it's the source of truth (see Gotchas).
 
 ---
 
@@ -74,7 +74,7 @@ Output one markdown table, all 32 rows, in original order, with all six original
 | # | Best Practice | Examples | How to Use It | How It Helps | Source(s) | Status | Recommended Next Step |
 ```
 
-Before the table, add a one-line rollup so Mario can triage at a glance, e.g.:
+Before the table, add a one-line rollup so Plumbeer can triage at a glance, e.g.:
 
 ```
 **24/32 met · 5 partial · 2 not met · 1 N/A** — biggest gaps: #8 (no quantified benefits), #19 (TAM not sized), #23 (risks not surfaced).
@@ -90,4 +90,4 @@ Print the full table — never truncate to "top issues only" unless the user exp
 - **Don't invent evidence.** If a section of the PRFAQ is genuinely ambiguous on a given criterion, mark it `⚠️ Partial` and say what's ambiguous — don't force a `Met` or `Not Met` verdict you can't back with a quote.
 - **`N/A` is an escape hatch, not a shortcut.** Overusing it (especially for FAQ-structure rows like #15, #16) hides real gaps. Default to evaluating every row as `Met`/`Partial`/`Not Met` unless it truly cannot apply.
 - **Long PRFAQs**: if the document is very long, still evaluate all 32 rows — don't skip rows because the doc is dense. Take the time to locate the relevant section for each.
-- **This skill only reads and prints** — it never writes back to Notion or any file. If Mario later wants the matrix saved somewhere (a file, a new Notion page), that's a follow-up ask, not part of this flow.
+- **This skill only reads and prints** — it never writes back to Notion or any file. If Plumbeer later wants the matrix saved somewhere (a file, a new Notion page), that's a follow-up ask, not part of this flow.

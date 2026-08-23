@@ -1,5 +1,5 @@
 ---
-name: mario-recording-transcriber
+name: plumbeer-recording-transcriber
 description: >-
   Convert a spoken audio recording into a text transcript with per-segment [MM:SS]
   timestamps by default, confirm the detected language with the user, then read the
@@ -15,7 +15,7 @@ compatibility: >-
   Python virtualenv with mlx-whisper — see references/dependency-setup.md. Never installs
   into system/Homebrew Python.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: productivity
 ---
@@ -88,7 +88,7 @@ Run the bundled script through the persistent venv's Python (see
 [references/dependency-setup.md](references/dependency-setup.md)):
 
 ```bash
-~/.mario-skills/recording-transcriber/venv/bin/python scripts/transcribe.py <input_audio> <scratch_output.txt> [--verbose] [--no-timestamps]
+~/.plumbeer-skills/recording-transcriber/venv/bin/python scripts/transcribe.py <input_audio> <scratch_output.txt> [--verbose] [--no-timestamps]
 ```
 
 - Pass `--verbose` only if the user opted into it in Step 1.

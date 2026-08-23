@@ -1,5 +1,5 @@
 ---
-name: mario-<name>
+name: plumbeer-<name>
 description: >-
   Use this skill when [describe the task and when to use it].
   Include specific keywords the agent can match. Keep under 1024 characters.
@@ -7,7 +7,7 @@ description: >-
 license: MIT
 compatibility: [Optional. Describe environment requirements if any.]
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
 ---
 

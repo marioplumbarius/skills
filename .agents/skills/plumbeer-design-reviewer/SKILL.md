@@ -1,5 +1,5 @@
 ---
-name: mario-design-reviewer
+name: plumbeer-design-reviewer
 description: >-
   Review a design doc against a 24-item Design Doc Review Checklist derived
   from references/design-review-process.md, and return a readiness matrix —
@@ -15,7 +15,7 @@ compatibility: >-
   references/design-review-process.md. For link input, uses notion-fetch for
   Notion URLs or WebFetch for other URLs.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: document-review
 ---

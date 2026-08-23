@@ -1,20 +1,20 @@
 ---
-name: mario-skill-creator
+name: plumbeer-skill-creator
 description: >-
-  Create a new agent skill following Mario's philosophy and best practices. Use when you
+  Create a new agent skill following Plumbeer's philosophy and best practices. Use when you
   need to author a new skill or understand how to structure one. Walks you through a
-  four-step process: foundational scaffolding, external specifications, Mario's principles,
+  four-step process: foundational scaffolding, external specifications, Plumbeer's principles,
   and crafting the final content. Follow the three-pass approach for best results.
 compatibility: Works in any Claude environment. No external tools required.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: skill-creation
 ---
 
-# Mario Skill Creator
+# Plumbeer Skill Creator
 
-Create agent skills following Mario's philosophy and best practices.
+Create agent skills following Plumbeer's philosophy and best practices.
 
 ---
 
@@ -39,9 +39,9 @@ Study existing skills in `.agents/skills/*/SKILL.md` for patterns.
 
 ---
 
-## Step 3: Apply Mario's Philosophy (Customization)
+## Step 3: Apply Plumbeer's Philosophy (Customization)
 
-Layer on Mario's approach. These principles shape how to write instructions:
+Layer on Plumbeer's approach. These principles shape how to write instructions:
 
 ### Principle 1: Ground in expertise, not hypotheticals
 
@@ -107,7 +107,7 @@ Once you've applied Steps 1–3, write the skill instruction with these substeps
 
 1. **Use [Amazon's Working Backwards](https://www.amazon.jobs/en/landing_pages/working-backwards)** — Ask clarifying questions. Understand the real problem. Don't assume.
 
-2. **Name the skill** — The `name` field and directory name must start with `mario-` (e.g. `mario-pr-pitch`, `mario-skill-backwards`). Never omit the prefix.
+2. **Name the skill** — The `name` field and directory name must start with `plumbeer-` (e.g. `plumbeer-pr-pitch`, `plumbeer-skill-backwards`). Never omit the prefix.
 
 3. **Craft the description** — Imperative phrasing, specific, under 1024 characters. Frame it as an instruction to the agent: "Use this when…"
 
@@ -127,13 +127,13 @@ Once you've applied Steps 1–3, write the skill instruction with these substeps
 
 ## Tension Between Frameworks
 
-The three frameworks (skill-creator → external specs → Mario's philosophy) may conflict. Resolve in priority order:
+The three frameworks (skill-creator → external specs → Plumbeer's philosophy) may conflict. Resolve in priority order:
 
-1. **Mario's philosophy** (top priority)
+1. **Plumbeer's philosophy** (top priority)
 2. **External specs**
 3. **Skill-creator defaults**
 
-This friction is healthy. You're optimizing for how Mario himself would perform the task.
+This friction is healthy. You're optimizing for how Plumbeer himself would perform the task.
 
 ## Why These Principles
 

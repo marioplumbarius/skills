@@ -1,6 +1,6 @@
 # RATIONALE
 
-This document explains the *why* behind the principles documented in the Mario Skill Creator. It captures the reasoning, sources, and lessons that shaped Mario's approach to skill authorship.
+This document explains the *why* behind the principles documented in the Plumbeer Skill Creator. It captures the reasoning, sources, and lessons that shaped Plumbeer's approach to skill authorship.
 
 ## Core Principles: Where They Come From
 
@@ -16,7 +16,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** When an operation can break (file writes, merges, deletions), agents *should* follow a specific sequence. A well-intentioned "do whatever works" approach usually leads to subtle bugs.
 
-**Example:** In `mario-pump-to-obsidian`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
+**Example:** In `plumbeer-pump-to-obsidian`, always use GitHub MCP tools in a specific order: check branch exists → create branch → commit → open PR → merge. Skipping the branch check or merging before PR approval are subtle ways it breaks.
 
 **Source:** Learned from debugging automation that had multiple failure modes. The more operations are autonomous, the more prescriptive the instructions need to be.
 
@@ -41,7 +41,7 @@ This document explains the *why* behind the principles documented in the Mario S
 
 **Why:** Autonomous operations (merging PRs, writing files, deleting things) can destroy work in seconds. The cost of asking "are you sure?" is tiny compared to the cost of accidentally merging the wrong branch.
 
-**Example:** In `mario-pump-to-obsidian`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
+**Example:** In `plumbeer-pump-to-obsidian`, phase 2 requires explicit approval before phase 3 opens a PR. This is where we catch misunderstandings.
 
 **Source:** Experience with "smart" automation that did exactly what I asked, not what I *meant*. The three-part gate (present plan → ask → execute) has never failed me.
 
@@ -60,23 +60,23 @@ This document explains the *why* behind the principles documented in the Mario S
 Creating a skill involves:
 1. **Scaffolding** (skill-creator handles this)
 2. **Standards** (AgentSkills specification is the community standard)
-3. **Personal philosophy** (Mario's approach, tested through 2 live skills)
+3. **Personal philosophy** (Plumbeer's approach, tested through 2 live skills)
 
 These three sources sometimes conflict. Example:
 - [AgentSkills spec](https://agentskills.io/specification) says "description can be up to 1024 characters"
-- Mario's rule: "craft it tight, under 200 characters, because if you can't describe the skill briefly, it's not coherent"
+- Plumbeer's rule: "craft it tight, under 200 characters, because if you can't describe the skill briefly, it's not coherent"
 
-Resolving this: Mario's rule wins. It's more restrictive, but produces better skills.
+Resolving this: Plumbeer's rule wins. It's more restrictive, but produces better skills.
 
 ### Why this priority order?
 
-**Mario > AgentSkills > skill-creator** (bottom to top override)
+**Plumbeer > AgentSkills > skill-creator** (bottom to top override)
 
 1. **skill-creator** provides the foundation. It handles scaffolding, validation, the basic structure. Don't reinvent this.
 2. **AgentSkills** provides standards. Use the spec fields, follow naming conventions, document gotchas. This is the community standard.
-3. **Mario's philosophy** is the customization layer. It reflects hard-won lessons from actual skill usage.
+3. **Plumbeer's philosophy** is the customization layer. It reflects hard-won lessons from actual skill usage.
 
-When they conflict, the customization layer (Mario) wins because it's grounded in repeated experience.
+When they conflict, the customization layer (Plumbeer) wins because it's grounded in repeated experience.
 
 
 ## Where This Conflicts With "Best Practices"
@@ -84,21 +84,21 @@ When they conflict, the customization layer (Mario) wins because it's grounded i
 ### Conflict 1: Prescriptive vs. Flexible
 
 **Mainstream advice:** "Give agents/users choices, let them figure it out." (Common in UX design and flexibility-first frameworks)
-**Mario's approach:** "Be prescriptive. Choices paralyze agents."
+**Plumbeer's approach:** "Be prescriptive. Choices paralyze agents."
 
-**Why Mario's approach:** Watched too many "flexible" automations produce inconsistent results. Agents freeze when given choices, and prescriptiveness prevents this. It's a feature, not a bug.
+**Why Plumbeer's approach:** Watched too many "flexible" automations produce inconsistent results. Agents freeze when given choices, and prescriptiveness prevents this. It's a feature, not a bug.
 
 ### Conflict 2: DRY (Don't Repeat Yourself)
 
 **Mainstream advice:** "DRY principle — Avoid repeating instructions, reference external docs."
-**Mario's approach:** "Keep instructions self-contained. Link to external resources, don't delegate to them."
+**Plumbeer's approach:** "Keep instructions self-contained. Link to external resources, don't delegate to them."
 
 **Why:** If a skill's instructions depend on reading 5 other docs, agents get confused. The skill should be understandable in isolation, using progressive disclosure with the skill itself as the primary unit.
 
 ### Conflict 3: Simplicity
 
 **Mainstream advice:** "Keep everything simple and reusable." (Influenced by KISS principle — keep it simple, stupid — and minimalism)
-**Mario's approach:** "Make it *complete* before making it simple. Completeness includes validation gates, gotchas, constraints."
+**Plumbeer's approach:** "Make it *complete* before making it simple. Completeness includes validation gates, gotchas, constraints."
 
 **Why:** A simple skill that fails silently is worse than a complex skill that fails loudly. Fail-fast is better than silent failures.
 
@@ -108,11 +108,11 @@ When they conflict, the customization layer (Mario) wins because it's grounded i
 This isn't a formal methodology (like [Agile](https://agilemanifesto.org/) or [Design Thinking](https://www.nngroup.com/articles/design-thinking/)). It's a collection of patterns that worked, grounded in practice rather than prescribed process.
 
 ### No universal applicability claim
-Mario's principles work well for personal skills (code review, hiring, dev workflows). They might not work for public tools (CLI apps, libraries). Adjust as needed.
+Plumbeer's principles work well for personal skills (code review, hiring, dev workflows). They might not work for public tools (CLI apps, libraries). Adjust as needed.
 
 ## How to Use This
 
-If you're creating skills and disagree with something in the Mario Skill Creator:
+If you're creating skills and disagree with something in the Plumbeer Skill Creator:
 
 1. **Understand the rationale** (read this file)
 2. **Respect the principle**, even if you'd do it differently

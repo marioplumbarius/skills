@@ -1,5 +1,5 @@
 ---
-name: mario-pr-pitch
+name: plumbeer-pr-pitch
 description: >-
   Write a pull request title and description that communicate *why* the change
   exists, not what files changed or how the code works. Use whenever the user
@@ -10,7 +10,7 @@ description: >-
   provided.
 compatibility: Requires git. Uses `git diff` and `git log` to gather context when not provided.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.0"
   category: git-workflow
 ---

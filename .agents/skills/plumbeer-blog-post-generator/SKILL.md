@@ -1,5 +1,5 @@
 ---
-name: mario-blog-post-generator
+name: plumbeer-blog-post-generator
 description: >-
   Research a topic across the web, X/Twitter, Instagram, YouTube, and images,
   then draft a cited, publish-ready blog post. Use this whenever the user
@@ -18,14 +18,14 @@ compatibility: >-
   if a top image is requested. Extending output format support touches this
   skill's own reference files, not an external repo.
 metadata:
-  author: mario
+  author: plumbeer
   version: "1.1"
   category: content-creation
 ---
 
 # Blog Post Generator
 
-Turn a topic and a set of sources into a cited, structured blog post. Mario
+Turn a topic and a set of sources into a cited, structured blog post. Plumbeer
 writes these regularly from social and web research — the skill exists so
 every post gets the same rigor: real citations, no invented facts, no
 skipped confirmation on the details that change the output.

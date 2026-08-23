@@ -1,9 +1,9 @@
 ---
-name: mario-pump-to-obsidian
+name: plumbeer-pump-to-obsidian
 description: >-
   Capture context from a source — the current Claude session (Claude Code,
   cowork, or chat), or a YouTube video transcribed via yt-dlp — and push it as
-  a new note into Mario's Obsidian vault on GitHub (marioplumbeer/obsidian).
+  a new note into Plumbeer's Obsidian vault on GitHub (marioplumbeer/obsidian).
   Use when the user says "pump to obsidian", "save this to my vault/obsidian",
   "send this session to my notes", "pump this video to obsidian", or pastes a
   YouTube URL wanting it captured as a note. Always shows a plan for approval
@@ -13,7 +13,7 @@ compatibility: >-
   marioplumbeer/obsidian repository; not suitable for other vaults. YouTube
   sources additionally require yt-dlp installed and on PATH.
 metadata:
-  author: mario
+  author: plumbeer
   version: "2.0"
   category: knowledge-management
 ---
@@ -86,7 +86,7 @@ and stop — do not silently fall back to a different repo.
    - base = default branch, head = the new branch
    - title: `Pump to Obsidian: <title>`
    - body: short summary of what the note captures + a line noting it was
-     generated via the mario-pump-to-obsidian skill.
+     generated via the plumbeer-pump-to-obsidian skill.
 
 Report the PR number and URL.
 
