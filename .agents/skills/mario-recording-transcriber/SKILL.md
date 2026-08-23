@@ -63,13 +63,15 @@ Also confirm two output options here, up front, before doing any work:
 ## Step 2: Verify/install dependencies
 
 Follow [references/dependency-setup.md](references/dependency-setup.md) exactly. In short:
-check `ffmpeg` on PATH (install via Homebrew if missing), and check for a working
-mlx-whisper virtualenv (create one and `pip install mlx-whisper` if missing). Never
-`pip install` into system/Homebrew Python — it's blocked by PEP 668 anyway.
+first confirm the platform is an Apple Silicon Mac (`uname -s` is `Darwin`, `uname -m` is
+`arm64`) — if not, stop immediately, before touching Homebrew or Python at all. Then check
+`ffmpeg` on PATH (install via Homebrew if missing), and check for a working mlx-whisper
+virtualenv (create one and `pip install mlx-whisper` if missing). Never `pip install` into
+system/Homebrew Python — it's blocked by PEP 668 anyway.
 
-This skill is **mlx-whisper only** — there is no CPU/non-Apple-Silicon fallback. If
-mlx-whisper cannot run on this machine, stop and tell the user rather than degrading to a
-slower alternative.
+This skill is **mlx-whisper only** — there is no CPU/non-Apple-Silicon fallback. If the
+platform check fails, or mlx-whisper otherwise cannot run on this machine, stop and tell
+the user rather than degrading to a slower alternative.
 
 ## Step 3: Determine output filename & paths
 

@@ -4,6 +4,20 @@ This skill needs `ffmpeg` (for audio decoding) and a Python virtualenv with `mlx
 installed. Both should be verified before Step 4 of `SKILL.md` runs, and reused across
 sessions rather than reinstalled every time.
 
+## 0. Platform check (do this first)
+
+`mlx-whisper` only runs on Apple Silicon Macs. Check before touching Homebrew or Python at
+all — there's no point installing anything if the platform can't run it:
+
+```bash
+uname -s   # must be Darwin (macOS)
+uname -m   # must be arm64 (Apple Silicon)
+```
+
+If either check fails — not macOS, or an Intel Mac — **stop immediately** and tell the user
+plainly that this skill requires an Apple Silicon Mac and can't run on their machine. Don't
+attempt `brew install` or venv setup on a platform that will never satisfy `mlx-whisper`.
+
 ## 1. ffmpeg
 
 ```bash
@@ -47,9 +61,9 @@ Re-run the import check:
 ~/.mario-skills/recording-transcriber/venv/bin/python -c "import mlx_whisper; print('ok')"
 ```
 
-If this still fails — most likely because the machine isn't Apple Silicon, since
-`mlx-whisper` requires it — stop and tell the user plainly that this skill can't run on
-their hardware. There is no fallback transcription engine; don't try to install one.
+If this still fails despite the Step 0 platform check passing, stop and tell the user the
+install itself is broken rather than guessing further. There is no fallback transcription
+engine; don't try to install one.
 
 Once both checks pass, proceed to Step 4 in `SKILL.md`, invoking
 `scripts/transcribe.py` through this venv's Python.
