@@ -160,7 +160,7 @@ Same progress-logging and per-song-failure-never-aborts-the-run behavior as the 
 **Also ask two more things before proceeding, every time — don't default silently:**
 
 1. **New playlist, or an existing one?** Run `python scripts/build_playlist.py list-playlists` and show the user their existing playlists (title + track count) as options, alongside "create new." This exists specifically so repeated runs don't quietly accumulate a pile of near-duplicate playlists.
-2. **If new: what should it be called?** Offer the auto-generated default (`Produced by <producers>` for the producer flow, `Albums: <album names>` for the album flow) but let the user override it.
+2. **If new: what should it be called, and what description should it have?** Offer the auto-generated default title (`Produced by <producers>` for the producer flow, `Albums: <album names>` for the album flow) but let the user override it — either way, `execute` appends a hard-coded `" (built by plumbeer)"` suffix to the final title. The description defaults to a fixed plumbeer footer (tagline + References links); pass `--description` only if the user wants to replace it with their own text.
 3. **If existing: merge or replace?** `merge` adds this run's tracks on top of what's already there; `replace` clears the existing playlist first. Get an explicit choice — don't assume either one, since replace is destructive to whatever was already in that playlist.
 
 ---
@@ -169,7 +169,7 @@ Same progress-logging and per-song-failure-never-aborts-the-run behavior as the 
 
 ```bash
 # New playlist
-python scripts/build_playlist.py execute --plan-file plan.json --mode create --title "<name>"
+python scripts/build_playlist.py execute --plan-file plan.json --mode create --title "<name>" --description "<description>"
 
 # Existing playlist
 python scripts/build_playlist.py execute --plan-file plan.json --mode replace --playlist-id <id>
@@ -177,6 +177,8 @@ python scripts/build_playlist.py execute --plan-file plan.json --mode merge   --
 ```
 
 `execute` reads whichever of `plan["producers"]`/`plan["albums"]` is present in the plan file — same command for both flows. `--playlist-id` is required for `replace`/`merge` — get it from `list-playlists`, never guess or construct one. `replace` deletes every existing item in that playlist before adding the plan's tracks; treat that step with the same care as any other destructive write, since it's not reversible from here.
+
+`--title` and `--description` only apply to `--mode create` — an existing playlist keeps its own title/description on `replace`/`merge`. If `--description` is omitted, it defaults to a fixed footer: `your playlist, engineered like big tech` plus a References section linking Plumbeer's LinkedIn and this skill's GitHub folder.
 
 **`execute` deduplicates by YouTube video ID before adding anything.** A track appearing more than once in the plan's combined track list (e.g. a collab credited to two requested producers, or the same song appearing on two selected albums) is deduped down to one add, logged as `skipped_duplicate_in_plan` in the result. In `--mode merge`, it also fetches the target playlist's current contents first and skips any track already sitting there (`skipped_already_in_playlist`) — this matters for repeated merge runs against the same playlist, so re-running doesn't pile up duplicate entries. `--mode replace` doesn't need this second check since the playlist is cleared first.
 
