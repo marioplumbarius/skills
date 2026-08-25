@@ -818,8 +818,9 @@ def cmd_execute(args):
         default_description = (
             "your playlist, engineered like big tech\n\n"
             "References\n\n"
-            "* Plumbeer: https://www.linkedin.com/in/marioplumbeer/\n"
-            "* Playlist Builder: https://github.com/marioplumbeer/skills/tree/main/.agents/skills/plumbeer-music-producer-playlist"
+            "* Playlist Builder: https://github.com/marioplumbeer/skills/tree/main/.agents/skills/plumbeer-music-producer-playlist\n"
+            "* Engineer: https://www.linkedin.com/in/marioplumbeer/\n"
+            "* Plumbeer: https://plumbeer.com.br/"
         )
         description = (args.description or default_description)[:5000]
         try:
