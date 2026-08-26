@@ -117,6 +117,12 @@ verbatim" in Phase 2, which is about not rewriting the substance.
 1. **Italicize quoted text.** Wrap text between double quotes in italics,
    quotes included: `"text"` → `*"text"*`. Apply this even when the quote
    sits inside a link label (e.g. `["text"](url)` → `[*"text"*](url)`).
+2. **Don't duplicate the title in the body.** Substack already renders the
+   `title` field as the post's headline, so a leading `# Title` (or `##`)
+   heading at the top of the body that just repeats it is redundant. If the
+   source material (e.g. an Obsidian note) opens with an H1/H2 matching the
+   title, strip that heading line from the body before presenting — don't
+   just leave it because the source had it.
 
 ## Phase 3 — Present plan (GATE: approval)
 
