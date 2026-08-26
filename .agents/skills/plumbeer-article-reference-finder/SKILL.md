@@ -11,8 +11,9 @@ description: >-
   and named organizations by default, with factual claims/statistics and the
   article's own existing citations as opt-in extras. For every person named
   in the article, prefer linking to their Wikipedia page over any other
-  source. Produces a numbered reference list plus a table mapping each
-  article mention to the reference found and how it matches.
+  source. Produces a single table mapping each article mention to the
+  reference found, a one-sentence summary of that reference, and how it
+  matches.
 compatibility: >-
   Requires WebFetch (to read a URL) and WebSearch (to find external
   references). Reads pasted text or local files directly — no special
@@ -42,7 +43,7 @@ deliverable is the independently-found reference table (Phases 4–5).
 - [ ] Phase 2: Confirm what to extract
 - [ ] Phase 3: Extract claims and named entities
 - [ ] Phase 4: Find a reference for each
-- [ ] Phase 5: Build the list + table
+- [ ] Phase 5: Build the table
 - [ ] Phase 6: Present for review
 ```
 
@@ -62,7 +63,9 @@ Confirm you have the full article, not a truncated excerpt, before moving on
 
 ## Phase 2 — Confirm what to extract
 
-Ask the user which categories to extract before reading for content. Default
+Ask via `AskUserQuestion` (multi-select) which categories to extract before
+reading for content — this is a fixed-choice gate, not open-ended, so use the
+question-box UI rather than a plain-text question. Default
 — if the user doesn't say, or says something like "just do the usual" —
 is **named people + named organizations only**. Offer the rest as opt-in:
 
@@ -98,6 +101,12 @@ Skip generic statements with nothing concrete to source (opinions, framing,
 transitions) — every row in the final table must trace to a specific claim or
 name in the text.
 
+Write the complete extraction list down before searching for a single
+reference. When one sentence names several entities in the same category
+("...leaving Philadelphia for New York and Los Angeles"), all of them go on
+the list together — don't search a couple and move on. A partial list inside
+one sentence is the most common way this skill silently drops an entity.
+
 ## Phase 4 — Find a reference for each
 
 Read [references/sourcing.md](references/sourcing.md) before searching — it
@@ -121,26 +130,23 @@ Every reference must be a real, verifiable link found via `WebSearch`/
 turns up for a claim, say so explicitly in the output instead of forcing a
 weak or irrelevant match.
 
-## Phase 5 — Build the list + table
+## Phase 5 — Build the table
 
-Produce two things, in this order:
+Produce a single table, one row per article mention, deduplicating only when
+the exact same entity is mentioned more than once in a way that would
+otherwise repeat an identical row:
 
-1. **Numbered reference list** — every distinct source found, deduplicated
-   (the same person or study referenced twice in the article gets one entry):
-   ```
-   1. [Full Name – Wikipedia](url)
-   2. [Study/Report Title – Publisher](url)
-   ```
-2. **Matching table** — one row per article mention, referencing the list
-   above by number:
+| Article mentions | Reference | Reference summary | How it matches |
+|---|---|---|---|
+| "Jane Doe, the lead researcher..." | [Jane Doe – Wikipedia](url) | American epidemiologist, known for her work on vaccine distribution models. | Identifies the person named in the article |
+| "...a 40% increase since 2019" | [Original Report – Publisher](url) | 2023 government dataset tracking the metric cited, updated annually. | Primary source for the statistic cited |
 
-   | # | Article mentions | Reference | How it matches |
-   |---|---|---|---|
-   | 1 | "Jane Doe, the lead researcher..." | [Jane Doe – Wikipedia](url) | Identifies the person named in the article |
-   | 2 | "...a 40% increase since 2019" | [Original Report – Publisher](url) | Primary source for the statistic cited |
-
-   Keep "How it matches" specific — name the exact claim or phrase being
-   backed, not a vague "related to this topic."
+- **Reference summary** — one sentence, pulled from the source itself (not
+  from how the article describes them), giving the reader the who/what at a
+  glance without opening the link: role/field for a person, what it does and
+  who leads it for an organization, what it measured and by whom for a study.
+- **How it matches** — specific to the exact claim or phrase being backed,
+  not a vague "related to this topic."
 
 If a claim or name had no credible reference found, still list it in the
 table with the Reference column marked "No credible source found" — don't
@@ -148,7 +154,7 @@ drop it silently.
 
 ## Phase 6 — Present for review
 
-Show the full list and table to the user before saving anything to a file.
+Show the full table to the user before saving anything to a file.
 Ask if any match looks wrong (wrong person, weak source, missed claim) and
 revise before finalizing. Only write the output to a file if the user asks
 for one.
@@ -159,6 +165,11 @@ for one.
   claims or existing citations unless the user opts in during Phase 2 — a
   full fact-check is a bigger job than a "who's mentioned here" pass, and
   assuming the bigger scope wastes searches the user didn't ask for.
+- **Multi-entity sentences drop entries silently.** Observed in testing:
+  "leaving Philadelphia for New York and Los Angeles" got Philadelphia and
+  Los Angeles searched and listed but New York quietly skipped — same
+  category, same sentence, no reason to treat it differently. Extract the
+  full list per Phase 3 before searching anything.
 - **Wikipedia disambiguation is the most common failure mode.** A common
   name (or a name shared with someone more famous) can silently link to the
   wrong person. Always verify against context in the article — occupation,
