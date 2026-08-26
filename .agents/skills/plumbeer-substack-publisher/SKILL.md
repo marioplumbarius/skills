@@ -15,7 +15,7 @@ compatibility: >-
   Requires Python 3 and pip (to install `python-substack`). Requires a local,
   non-repo cookies file exported from an authenticated Substack browser
   session — scripts/extract_firefox_cookie.py automates this on macOS with
-  Firefox installed (it checks both and refuses to run otherwise); other
+  Firefox installed (Phase 1 checks both before offering it); other
   platforms/browsers use the manual steps in references/setup.md. Targets
   the user's own Substack publication only.
   Draft-only: never publishes or emails subscribers.
@@ -58,21 +58,28 @@ Check for an existing local config at `~/.config/plumbeer/substack/`:
 - `cookies.json` — a JSON object with at least `substack.sid`.
 - `config.json` — `{"publication_url": "https://example.substack.com"}`.
 
-If `cookies.json` is missing and the user is on **macOS + Firefox**, offer
-to run [scripts/extract_firefox_cookie.py](scripts/extract_firefox_cookie.py)
-— it copies the local `cookies.sqlite` (so it works even with Firefox
-open), pulls the `substack.sid` value, and writes it straight to
-`~/.config/plumbeer/substack/cookies.json` with `chmod 600`, without ever
-printing the value. The script itself checks these two prerequisites
-(macOS, Firefox installed) and stops with a clear message if either is
-missing — its job is to read an existing profile, not to install Firefox or
-support other platforms. Don't try to work around a failed check (e.g. by
-guessing another browser's cookie store); fall through to the manual path
-below instead.
+If `cookies.json` is missing, check whether
+[scripts/extract_firefox_cookie.py](scripts/extract_firefox_cookie.py) is
+even applicable **before** offering it — the script assumes its
+prerequisites are already met and does not re-check them:
 
-This still reaches into the user's browser profile, so **ask before running
-it each time** — don't run it silently just because it exists. If they're on
-a different browser or platform, or decline, walk them through the
+1. **Platform**: run `uname -s` and confirm it prints `Darwin` (macOS).
+2. **Firefox installed**: confirm it exists, e.g.
+   `test -d "/Applications/Firefox.app" -o -d "$HOME/Applications/Firefox.app"`.
+
+If either check fails, do not offer or run the script — go straight to the
+manual path in [references/setup.md](references/setup.md). This skill's job
+is to read an existing Firefox profile, not to install Firefox or guess at
+another OS's/browser's cookie store, so don't try to work around a failed
+check.
+
+If both checks pass, offer to run the script — it copies the local
+`cookies.sqlite` (so it works even with Firefox open), pulls the
+`substack.sid` value, and writes it straight to
+`~/.config/plumbeer/substack/cookies.json` with `chmod 600`, without ever
+printing the value. This still reaches into the user's browser profile, so
+**ask before running it each time** — don't run it silently just because it
+exists and the checks passed. If the user declines, walk them through the
 manual path in [references/setup.md](references/setup.md) instead.
 
 Either way, never ask the user to paste the cookie value directly into the
@@ -178,13 +185,15 @@ back to guessing a different endpoint. See Gotchas below.
   `python3 -m venv ~/.config/plumbeer/substack/venv && ~/.config/plumbeer/substack/venv/bin/pip install python-substack`)
   and use that interpreter for every subsequent Python call in this skill —
   don't reach for `--break-system-packages`.
-- **The cookie-extraction script only covers macOS + Firefox.** It checks
-  both up front and exits with a clear message otherwise — it will not try
-  to install Firefox or guess at another OS's/browser's cookie store. For
-  anything else, fall back to the manual DevTools steps in
-  [references/setup.md](references/setup.md). Re-running the script is safe
-  (it overwrites `cookies.json`) but still ask first each time — it's
-  reading live browser data.
+- **The cookie-extraction script only covers macOS + Firefox, and doesn't
+  check that itself.** Phase 1's `uname -s` / Firefox.app checks are what
+  gate it — run those first, every time, before offering the script. Don't
+  invoke it on an unchecked platform and let it fail, and don't try to
+  install Firefox or guess at another OS's/browser's cookie store if the
+  checks fail; fall back to the manual DevTools steps in
+  [references/setup.md](references/setup.md) instead. Re-running the script
+  is safe (it overwrites `cookies.json`) but still ask first each time —
+  it's reading live browser data.
 - **Expired/invalid cookie** shows up as 401/403. Don't try to "fix" auth by
   guessing header formats — tell the user their cookie likely expired and
   point them back to [references/setup.md](references/setup.md) to refresh it.

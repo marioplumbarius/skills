@@ -6,8 +6,16 @@ is a one-time setup per machine/account.
 
 ## 1. Get the `substack.sid` cookie
 
-**macOS + Firefox:** log into the target Substack publication first, then
-run [../scripts/extract_firefox_cookie.py](../scripts/extract_firefox_cookie.py):
+**macOS + Firefox:** first confirm both hold — `uname -s` prints `Darwin`,
+and Firefox is actually installed (`/Applications/Firefox.app` or
+`~/Applications/Firefox.app` exists). The script itself doesn't check this;
+if you run it on the wrong platform or without Firefox installed, it'll just
+fail partway through rather than explain why. If either check fails, skip
+straight to the manual steps below — this isn't the place to install
+Firefox just to make the script usable.
+
+If both hold, log into the target Substack publication in Firefox first,
+then run [../scripts/extract_firefox_cookie.py](../scripts/extract_firefox_cookie.py):
 
 ```bash
 python3 <path-to-skill>/scripts/extract_firefox_cookie.py
@@ -18,11 +26,6 @@ It auto-detects the default Firefox profile, reads a copy of
 `~/.config/plumbeer/substack/cookies.json` directly — the cookie value is
 never printed or passed through chat. Pass `--profile <path>` if you have
 multiple profiles and the wrong one gets picked.
-
-The script checks it's running on macOS with Firefox actually installed and
-stops immediately with an explanation if not — it won't install Firefox or
-try to guess where another OS/browser keeps its cookies. On any other
-platform, or a different browser, skip straight to the manual steps below.
 
 **Any other platform/browser:** do it manually —
 

@@ -2,10 +2,9 @@
 """Extract the substack.sid cookie from a local Firefox profile and save it
 to ~/.config/plumbeer/substack/cookies.json.
 
-macOS + Firefox only. This script's job is to read an existing Firefox
-profile — not to install or configure Firefox. If either prerequisite is
-missing, it stops immediately with an explanation instead of trying to work
-around it.
+macOS + Firefox only. The caller (see SKILL.md Phase 1) is responsible for
+checking those prerequisites before running this script — it does not
+re-check them itself, and it will not install or configure Firefox.
 
 Reads a *copy* of Firefox's cookies.sqlite (plus its -wal file) so it works
 even while Firefox is open and holding the original locked. Never prints the
@@ -20,37 +19,10 @@ directory.
 """
 import argparse
 import json
-import platform
 import shutil
 import sqlite3
 import tempfile
 from pathlib import Path
-
-FIREFOX_APP_PATHS = (
-    Path("/Applications/Firefox.app"),
-    Path.home() / "Applications" / "Firefox.app",
-)
-
-
-def check_prerequisites() -> None:
-    system = platform.system()
-    if system != "Darwin":
-        raise SystemExit(
-            f"This script only supports macOS (detected: {system}). "
-            "It reads Firefox's profile directory, whose location differs "
-            "per platform and isn't set up for this one. See "
-            "references/setup.md for the manual cookie-copy steps instead."
-        )
-
-    if not any(p.exists() for p in FIREFOX_APP_PATHS):
-        raise SystemExit(
-            "Firefox does not appear to be installed (checked "
-            f"{', '.join(str(p) for p in FIREFOX_APP_PATHS)}). "
-            "This script only reads an existing Firefox profile — it will "
-            "not install Firefox for you. Install Firefox and log into "
-            "Substack in it first, or use a different browser via the "
-            "manual steps in references/setup.md."
-        )
 
 
 def find_profiles_dir() -> Path:
@@ -110,8 +82,6 @@ def main() -> None:
         help="Path to a specific Firefox profile directory (skips auto-detection).",
     )
     args = parser.parse_args()
-
-    check_prerequisites()
 
     profile_dir = args.profile or find_profile(find_profiles_dir())
     print(f"Using Firefox profile: {profile_dir}")
