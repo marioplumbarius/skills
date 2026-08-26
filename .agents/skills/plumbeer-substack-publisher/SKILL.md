@@ -42,6 +42,7 @@ Substack editor.
 ```
 - [ ] Phase 1: Confirm credentials & publication config
 - [ ] Phase 2: Prepare the article
+- [ ] Editing rules: apply before presenting the plan
 - [ ] Phase 3: Present plan (GATE: approval)
 - [ ] Phase 4: Create draft
 ```
@@ -105,6 +106,17 @@ Gather or draft:
 
 If the user already has a finished piece (file, doc, previous chat output),
 use it verbatim — don't rewrite content that wasn't asked to be rewritten.
+
+## Editing rules
+
+Apply these mechanical transformations to the body before presenting it in
+Phase 3, and again after any revision the user requests. They are
+formatting fixes, not content rewrites — they don't conflict with "use it
+verbatim" in Phase 2, which is about not rewriting the substance.
+
+1. **Italicize quoted text.** Wrap text between double quotes in italics,
+   quotes included: `"text"` → `*"text"*`. Apply this even when the quote
+   sits inside a link label (e.g. `["text"](url)` → `[*"text"*](url)`).
 
 ## Phase 3 — Present plan (GATE: approval)
 
