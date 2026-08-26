@@ -26,21 +26,11 @@ draft_url = f"https://<subdomain>.substack.com/publish/post/{draft_id}"
 ```
 
 Report `draft_id` and `draft_url` back to the user after this call —
-this is the deliverable of Phase 4.
+this is the deliverable of Phase 4, and the deliverable of this skill.
 
-## Publish (Phase 5 only, after its own explicit confirmation)
-
-```python
-# Live on the site, no subscriber email
-api.publish_draft(draft_id, send=False)
-
-# Live on the site AND emailed to every subscriber immediately
-api.publish_draft(draft_id, send=True)
-```
-
-Live URL after publish: `https://<subdomain>.substack.com/p/<slug>` — the
-`from_markdown`/`create_draft_from_markdown` result includes the slug, or
-re-fetch the post if it wasn't captured.
+**Do not call `publish_draft` or any other send/publish/email endpoint.**
+This skill is draft-only by design; going live is left entirely to the user,
+from the Substack editor.
 
 ## Error handling
 

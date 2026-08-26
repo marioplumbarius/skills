@@ -1,20 +1,21 @@
 ---
 name: plumbeer-substack-publisher
 description: >-
-  Publish an article to Substack — create a draft from markdown/prose and
-  optionally publish it live (with or without emailing subscribers). Use when
-  the user says "publish this to Substack", "post this article on my
-  Substack", "send this as a Substack draft", or hands over a piece of
-  writing (or asks you to write one) and wants it on their Substack
-  publication. Substack has no official publish API, so this uses the
-  unofficial cookie-authenticated API via the `python-substack` library.
-  Requires a one-time local cookie setup (never committed to git) and always
-  gates the live-publish and subscriber-email steps behind explicit
-  confirmation.
+  Create a Substack draft from markdown/prose — draft only, never publishes
+  or goes live. Use when the user says "draft this on Substack", "put this
+  article in my Substack drafts", "send this as a Substack draft", or hands
+  over a piece of writing (or asks you to write one) and wants it staged on
+  their Substack publication for them to review and publish themselves.
+  Substack has no official publish API, so this uses the unofficial
+  cookie-authenticated API via the `python-substack` library, calling only
+  its draft-creation endpoint. Requires a one-time local cookie setup (never
+  committed to git). This skill has no publish/go-live capability by design —
+  it cannot make a post public or email subscribers under any circumstance.
 compatibility: >-
   Requires Python 3 and pip (to install `python-substack`). Requires a local,
   non-repo cookies file exported from an authenticated Substack browser
-  session. Targets the user's own Substack publication only.
+  session. Targets the user's own Substack publication only. Draft-only:
+  never publishes or emails subscribers.
 metadata:
   author: plumbeer
   version: "1.0"
@@ -23,19 +24,23 @@ metadata:
 
 # Substack Publisher
 
-Turn a piece of writing into a Substack draft, then — only with explicit
-confirmation — publish it live and optionally email subscribers. Substack has
-no official public API; this relies on the unofficial, reverse-engineered API
+Turn a piece of writing into a Substack **draft**. Substack has no official
+public API; this relies on the unofficial, reverse-engineered API
 (`python-substack`), authenticated with the user's own session cookie. That
 cookie is a real credential: it never gets committed, logged, or printed in
 full.
+
+**This skill only ever creates drafts.** It never calls a publish/go-live
+endpoint, never sends subscriber emails, and never makes anything public. If
+the user asks to publish, go live, or send the post, tell them the skill is
+draft-only by design and that they need to hit publish themselves in the
+Substack editor.
 
 ```
 - [ ] Phase 1: Confirm credentials & publication config
 - [ ] Phase 2: Prepare the article
 - [ ] Phase 3: Present plan (GATE: approval)
 - [ ] Phase 4: Create draft
-- [ ] Phase 5: Publish live (GATE: separate approval, only if requested)
 ```
 
 ## Phase 1 — Confirm credentials & publication config
@@ -83,9 +88,9 @@ Before calling any Substack API, show the user:
 2. **Title, subtitle, tags, cover image** (if any).
 3. **Full body content** (or the drafted piece, if you wrote it) so they see
    exactly what will be posted.
-4. **What you'll do now**: create a *draft* only (drafts are private and safe
-   to create without further confirmation past this gate). State clearly that
-   going live is a **separate** step that needs its own confirmation later.
+4. **What you'll do now**: create a *draft* only. This skill has no
+   publish/go-live capability — make that explicit so the user knows they'll
+   need to open the draft in Substack and publish it themselves when ready.
 
 Wait for explicit approval. Revise and re-present on request. Do not proceed
 to Phase 4 until approved — draft creation still writes to the user's real
@@ -102,29 +107,12 @@ error cases).
 
 Run it, then report back:
 - Draft ID and the draft edit URL (`{publication_url}/publish/post/{id}`).
-- Confirmation that nothing was sent or made public yet.
+- A reminder that this is the end of what the skill does: the draft sits in
+  Substack until the user opens it and publishes it themselves.
 
 If the API call fails (expired cookie, 401/403, schema change in the
 unofficial API), stop and report the raw error — don't retry blindly or fall
 back to guessing a different endpoint. See Gotchas below.
-
-## Phase 5 — Publish live (GATE: separate approval, only if requested)
-
-Only do this if the user asked to go live (not just "make a draft"). Ask
-explicitly, as its own confirmation, distinguishing two options — these are
-different actions with very different blast radius:
-
-- **Publish, no email** — post goes live on the site but subscribers aren't
-  notified.
-- **Publish and email subscribers** — the irreversible, most public option;
-  every subscriber gets an email immediately.
-
-Default to recommending "publish, no email" first if the user hasn't been
-explicit. Only send the subscriber email with unambiguous confirmation (e.g.
-"yes, send it to everyone now").
-
-Call `publish_draft(draft_id, send=<bool>)` per
-[references/api-usage.md](references/api-usage.md). Report the live URL.
 
 ## Gotchas
 
@@ -137,9 +125,10 @@ Call `publish_draft(draft_id, send=<bool>)` per
   Substack's own API host.
 - **Draft creation still touches the real account.** It's not "free" just
   because it's private — it still needs the Phase 3 gate.
-- **Publish vs. email are two different blast radii.** Going live and
-  emailing the full subscriber list are separate confirmations — never
-  collapse them into one yes.
+- **No publish path, ever.** Never call `publish_draft`, any "send"/"email"
+  endpoint, or otherwise try to make a post public or notify subscribers —
+  not even if the user insists or says they'll take responsibility. Tell
+  them to publish from the Substack editor themselves.
 - **Expired/invalid cookie** shows up as 401/403. Don't try to "fix" auth by
   guessing header formats — tell the user their cookie likely expired and
   point them back to [references/setup.md](references/setup.md) to refresh it.
