@@ -6,18 +6,40 @@ is a one-time setup per machine/account.
 
 ## 1. Get the `substack.sid` cookie
 
+**macOS + Firefox:** log into the target Substack publication first, then
+run [../scripts/extract_firefox_cookie.py](../scripts/extract_firefox_cookie.py):
+
+```bash
+python3 <path-to-skill>/scripts/extract_firefox_cookie.py
+```
+
+It auto-detects the default Firefox profile, reads a copy of
+`cookies.sqlite` (works fine with Firefox still open), and writes
+`~/.config/plumbeer/substack/cookies.json` directly — the cookie value is
+never printed or passed through chat. Pass `--profile <path>` if you have
+multiple profiles and the wrong one gets picked.
+
+The script checks it's running on macOS with Firefox actually installed and
+stops immediately with an explanation if not — it won't install Firefox or
+try to guess where another OS/browser keeps its cookies. On any other
+platform, or a different browser, skip straight to the manual steps below.
+
+**Any other platform/browser:** do it manually —
+
 1. Log into the target Substack publication in a normal browser, as the
    account that owns/co-authors it.
-2. Open DevTools → Application (Chrome) or Storage (Firefox) → Cookies →
-   `https://substack.com`.
+2. Open DevTools → Application (Chrome) or Storage (other browsers) →
+   Cookies → `https://substack.com`.
 3. Find the cookie named `substack.sid` and copy its value.
+4. Save it yourself into `~/.config/plumbeer/substack/cookies.json` (below)
+   — do this in the browser/terminal, not through chat; the value should
+   never pass through the agent.
 
-Do this in the browser, not through this agent — the value should never pass
-through chat.
+## 2. Save the publication URL
 
-## 2. Save it locally, outside the repo
-
-Create (or have the user create) `~/.config/plumbeer/substack/cookies.json`:
+If you used the script above, `cookies.json` is already in place — this
+step just needs `config.json` too. If you did the manual path, create
+`~/.config/plumbeer/substack/cookies.json` yourself:
 
 ```json
 {
@@ -41,7 +63,9 @@ chmod 600 ~/.config/plumbeer/substack/cookies.json
 
 ## 3. Verify
 
-Run a read-only check before attempting any writes:
+Requires `python-substack` (`pip install python-substack`; on Homebrew
+Python this needs a venv — see the SKILL.md Gotchas). Run a read-only check
+before attempting any writes:
 
 ```python
 from substack import Api

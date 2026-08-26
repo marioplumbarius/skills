@@ -14,8 +14,11 @@ description: >-
 compatibility: >-
   Requires Python 3 and pip (to install `python-substack`). Requires a local,
   non-repo cookies file exported from an authenticated Substack browser
-  session. Targets the user's own Substack publication only. Draft-only:
-  never publishes or emails subscribers.
+  session — scripts/extract_firefox_cookie.py automates this on macOS with
+  Firefox installed (it checks both and refuses to run otherwise); other
+  platforms/browsers use the manual steps in references/setup.md. Targets
+  the user's own Substack publication only.
+  Draft-only: never publishes or emails subscribers.
 metadata:
   author: plumbeer
   version: "1.0"
@@ -55,12 +58,28 @@ Check for an existing local config at `~/.config/plumbeer/substack/`:
 - `cookies.json` — a JSON object with at least `substack.sid`.
 - `config.json` — `{"publication_url": "https://example.substack.com"}`.
 
-If either is missing, walk the user through [references/setup.md](references/setup.md)
-**before** doing anything else. Do not ask the user to paste the cookie value
-directly into the chat — have them save it straight into
-`~/.config/plumbeer/substack/cookies.json` themselves (or paste it into a
-file you write, then treat that value as sensitive: never echo it back, never
-put it in a commit, never log it).
+If `cookies.json` is missing and the user is on **macOS + Firefox**, offer
+to run [scripts/extract_firefox_cookie.py](scripts/extract_firefox_cookie.py)
+— it copies the local `cookies.sqlite` (so it works even with Firefox
+open), pulls the `substack.sid` value, and writes it straight to
+`~/.config/plumbeer/substack/cookies.json` with `chmod 600`, without ever
+printing the value. The script itself checks these two prerequisites
+(macOS, Firefox installed) and stops with a clear message if either is
+missing — its job is to read an existing profile, not to install Firefox or
+support other platforms. Don't try to work around a failed check (e.g. by
+guessing another browser's cookie store); fall through to the manual path
+below instead.
+
+This still reaches into the user's browser profile, so **ask before running
+it each time** — don't run it silently just because it exists. If they're on
+a different browser or platform, or decline, walk them through the
+manual path in [references/setup.md](references/setup.md) instead.
+
+Either way, never ask the user to paste the cookie value directly into the
+chat: it comes from the script, or the user saves it into
+`~/.config/plumbeer/substack/cookies.json` themselves. Treat it as sensitive
+regardless of source — never echo it back, never put it in a commit, never
+log it.
 
 Verify `~/.config/plumbeer/substack/` is outside this git repo. If the user
 insists on keeping config inside the repo working directory for some reason,
@@ -82,28 +101,52 @@ use it verbatim — don't rewrite content that wasn't asked to be rewritten.
 
 ## Phase 3 — Present plan (GATE: approval)
 
-Before calling any Substack API, show the user:
+Before calling any Substack API, present the draft as a structured, labeled
+block so the user can propose inline revisions against specific parts of it
+rather than the whole thing at once. Use this exact shape:
 
-1. **Target publication** (URL) and which cookie file will be used.
-2. **Title, subtitle, tags, cover image** (if any).
-3. **Full body content** (or the drafted piece, if you wrote it) so they see
-   exactly what will be posted.
-4. **What you'll do now**: create a *draft* only. This skill has no
-   publish/go-live capability — make that explicit so the user knows they'll
-   need to open the draft in Substack and publish it themselves when ready.
+```
+**Title:** <title>
 
-Wait for explicit approval. Revise and re-present on request. Do not proceed
-to Phase 4 until approved — draft creation still writes to the user's real
-Substack account and is covered by the "publishing/modifying public content"
-permission rule even though the draft itself is private.
+**Subtitle:** <subtitle, or "(none)">
+
+**Tags:** <tag1, tag2, ... or "(none)">
+
+**Cover image:** <path/URL, or "(none)">
+
+**Body:**
+<full body content, fenced as its own block, verbatim — this is what gets
+posted, so no placeholders or "..." truncation>
+```
+
+Follow it with:
+- **Target publication** (URL) and which cookie file will be used.
+- **What happens next**: creating a *draft* only. This skill has no
+  publish/go-live capability — say so explicitly, so the user knows they'll
+  need to open the draft in Substack and publish it themselves when ready.
+- An explicit prompt to either approve or point at what to change (e.g. "say
+  which part to revise, or reply 'proceed' to create the draft").
+
+This is not the harness's code-implementation Plan Mode (`EnterPlanMode` /
+`ExitPlanMode`) — that tool is scoped to planning code changes and explicitly
+says not to use it for content/research tasks, so don't invoke it here. The
+structured block above is a plain chat presentation, not a formal plan-mode
+session.
+
+Wait for explicit approval. On a revision request, apply it and re-present
+the full block again (not just the changed piece) so the user is always
+confirming the complete, current draft. Do not proceed to Phase 4 until
+approved — draft creation still writes to the user's real Substack account
+and is covered by the "publishing/modifying public content" permission rule
+even though the draft itself is private.
 
 ## Phase 4 — Create draft
 
 Use `python-substack` (`pip install python-substack` if not already
 installed — ask before installing new packages if the environment is
-unusual). See [references/api-usage.md](references/api-usage.md) for the
-exact call pattern (`create_draft_from_markdown`, image upload handling,
-error cases).
+unusual; on Homebrew Python this needs a venv, see Gotchas). See
+[references/api-usage.md](references/api-usage.md) for the exact call
+pattern (`create_draft_from_markdown`, image upload handling, error cases).
 
 Run it, then report back:
 - Draft ID and the draft edit URL (`{publication_url}/publish/post/{id}`).
@@ -129,6 +172,19 @@ back to guessing a different endpoint. See Gotchas below.
   endpoint, or otherwise try to make a post public or notify subscribers —
   not even if the user insists or says they'll take responsibility. Tell
   them to publish from the Substack editor themselves.
+- **Homebrew Python blocks global pip installs** (PEP 668). If
+  `pip install python-substack` fails with an "externally-managed-environment"
+  error, create a venv instead (e.g.
+  `python3 -m venv ~/.config/plumbeer/substack/venv && ~/.config/plumbeer/substack/venv/bin/pip install python-substack`)
+  and use that interpreter for every subsequent Python call in this skill —
+  don't reach for `--break-system-packages`.
+- **The cookie-extraction script only covers macOS + Firefox.** It checks
+  both up front and exits with a clear message otherwise — it will not try
+  to install Firefox or guess at another OS's/browser's cookie store. For
+  anything else, fall back to the manual DevTools steps in
+  [references/setup.md](references/setup.md). Re-running the script is safe
+  (it overwrites `cookies.json`) but still ask first each time — it's
+  reading live browser data.
 - **Expired/invalid cookie** shows up as 401/403. Don't try to "fix" auth by
   guessing header formats — tell the user their cookie likely expired and
   point them back to [references/setup.md](references/setup.md) to refresh it.
